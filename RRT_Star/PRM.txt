@@ -1,0 +1,12 @@
+Quality is 1.39784
+Path length is 83
+0.571429 0.298507 
+0.675676 0.538462 
+Nodes in graph 41565
+Time taken 4653
+Quality is 1.39784
+Path length is 83
+0.571429 0.298507 
+0.675676 0.538462 
+Nodes in graph 41565
+Time taken 4902

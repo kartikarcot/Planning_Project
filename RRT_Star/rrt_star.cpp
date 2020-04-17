@@ -19,20 +19,7 @@
 #define LOGGING 0
 
 std::vector<double> RRTStar::forward_kinematics(Point& angles){
-    double x0,y0,x1,y1;
-        int i;
-        //iterate through all the links starting with the base
-        x1 = ((double)this->x_size)/2.0;
-        y1 = 0;
-        for(i = 0; i < this->D; i++)
-        {
-            //compute the corresponding line segment
-            x0 = x1;
-            y0 = y1;
-            x1 = x0 + LINKLENGTH_CELLS*cos(2*PI-angles[i]);
-            y1 = y0 - LINKLENGTH_CELLS*sin(2*PI-angles[i]);
-        }
-    return {x1,y1};
+    return {this->x_size*angles[0],this->y_size*angles[1]};
 }
 
 template<typename T>
@@ -45,7 +32,7 @@ void log(std::vector<T> pt, std::ofstream& ofs){
     return;
 }
 
-int IsValidArmConfiguration(std::vector<double> angles, 
+int IsValid(std::vector<double> angles,
         int numofDOFs, double* map,int x_size, int y_size);
 
 template<typename T>
@@ -82,13 +69,13 @@ StarNode::StarNode(Point point, NodeId id):Node(point,id){
 }
 
 RRTStar::RRTStar(unsigned D, double* map, int x_size, int y_size):Tree(D){
-    this->ext_eps=0.5;
-    this->sf=0.001;
+    this->ext_eps=0.6;
+    this->sf=0.01;
     this->map=map;
     this->x_size=x_size;
     this->y_size=y_size;
     this->episodes=50000;
-    this->term_th=0.05;
+    this->term_th=0.02;
     this->is_terminal=false;
     this->exploit_th=0.15;
     //debug variable initialisations
@@ -137,19 +124,28 @@ std::vector<Node*> RRTStar::neighborhood(Point &pt, double th){
 
 bool RRTStar::obstacle_free(Point a, Point b){
     double dist=distance(a, b);
-    Point unit_vec=(1/dist)*(b-a),q_sampled;
+    Point unit_vec,q_sampled;
+    if(dist!=0){
+        unit_vec = (1/dist)*(b-a);
+    }
+    else{
+        unit_vec.push_back(0);
+        unit_vec.push_back(0);
+    }
     int no_samples = dist/(this->sf);
     double step_dist = this->sf;
     int i=0;
-    // std::cout<<"No of samples is "<<no_samples<<std::endl;
+    //std::cout<<"No of samples is "<<no_samples<<std::endl;
+    //std::cout<<"A "<<this->forward_kinematics(a)<<std::endl;
+    //std::cout<<"B "<<this->forward_kinematics(b)<<std::endl;
     for(i=0; i<=no_samples; i++){
         q_sampled = a+step_dist*i*unit_vec;
-        if(!IsValidArmConfiguration(q_sampled, this->D, this->map, 
+        if(!IsValid(q_sampled, this->D, this->map,
                 this->x_size, this->y_size)){
                 return false;
         }
     }
-    if(!IsValidArmConfiguration(b, this->D, this->map, 
+    if(!IsValid(b, this->D, this->map,
                 this->x_size, this->y_size)){
                 std::cout<<"b node is invalid\n";
                 return false;
@@ -168,17 +164,17 @@ std::pair<Point,int> RRTStar::new_config(Point& q_near, Point& q){
     // std::cout<<"No of samples is "<<no_samples<<std::endl;
     for(i=0; i<no_samples; i++){
         q_sampled = q_near+step_dist*i*unit_vec;
-        if(!IsValidArmConfiguration(q_sampled, this->D, this->map, 
+        if(!IsValid(q_sampled, this->D, this->map,
                 this->x_size, this->y_size)){
                 break_flg=1;
                 break;
         }
     }
     if(i==1||i==0){//trapped
-        // if(IsValidArmConfiguration(q_sampled, this->D, this->map, this->x_size, this->y_size))
+        // if(IsValid(q_sampled, this->D, this->map, this->x_size, this->y_size))
         if(i==0 && break_flg==1){
             std::cout<<"False Trap"<<std::endl;
-            std::cout<<IsValidArmConfiguration(q_sampled, this->D, this->map, 
+            std::cout<<IsValid(q_sampled, this->D, this->map,
                 this->x_size, this->y_size)<<" q_near\n";
             // std::cout<<q_sampled<<std::endl;
             std::cout<<q_near<<std::endl;
@@ -190,9 +186,9 @@ std::pair<Point,int> RRTStar::new_config(Point& q_near, Point& q){
     if(break_flg){
         //advanced but did not reach destination
         Point res=q_near+step_dist*(i-1)*unit_vec;
-        // std::cout<<"Brk "<<IsValidArmConfiguration(res, this->D, this->map, 
+        // std::cout<<"Brk "<<IsValid(res, this->D, this->map,
             // this->x_size, this->y_size)<<std::endl;
-        if(!IsValidArmConfiguration(res, this->D, this->map, 
+        if(!IsValid(res, this->D, this->map,
             this->x_size, this->y_size)){
                 std::cout<<"Invalid config advanced partially\n";
         }
@@ -201,9 +197,9 @@ std::pair<Point,int> RRTStar::new_config(Point& q_near, Point& q){
     else{
         //for loop completed so completely advanced
         if(reachable_flg){
-            // std::cout<<"reachable "<<IsValidArmConfiguration(q, this->D, this->map, 
+            // std::cout<<"reachable "<<IsValid(q, this->D, this->map,
             // this->x_size, this->y_size)<<std::endl;
-            if(!IsValidArmConfiguration(q_sampled, this->D, this->map, 
+            if(!IsValid(q_sampled, this->D, this->map,
             this->x_size, this->y_size)){
                 std::cout<<"Invalid config reached\n";
             }
@@ -211,9 +207,9 @@ std::pair<Point,int> RRTStar::new_config(Point& q_near, Point& q){
         }
         else{
             // Point res=q_near+this->ext_eps*(q-q_near);
-            // std::cout<<"Adv "<<IsValidArmConfiguration(q_sampled, this->D, this->map, 
+            // std::cout<<"Adv "<<IsValid(q_sampled, this->D, this->map,
             // this->x_size, this->y_size)<<std::endl;
-            if(!IsValidArmConfiguration(q_sampled, this->D, this->map, 
+            if(!IsValid(q_sampled, this->D, this->map, 
             this->x_size, this->y_size)){
                 std::cout<<"Invalid config advanced fully\n";
             }
@@ -268,10 +264,15 @@ int RRTStar::extend(Point &q){
         }
 
         if(cur_dist<this->term_th){
-            this->is_terminal=true;
-            std::cout<<"Closest Distance is "<<cur_dist<<std::endl;
-            this->terminal_id=cur_id;
-            std::cout<<signal.first<<std::endl;
+            if(this->obstacle_free(q_new,this->end)){
+                this->is_terminal=true;
+                std::cout<<"Closest Distance is "<<cur_dist<<std::endl;
+                this->terminal_id=cur_id;
+                std::cout<<signal.first<<std::endl;
+            }
+            else{
+                std::cout<<"Term condition reached, but last leg has obstacles"<<std::endl;
+            }
         }
         
         if(cur_dist<this->min_dist){
@@ -321,14 +322,16 @@ void RRTStar::backtrack(double*** plan, int* planlength){
     int num_samples=(int)result.size();
     *plan = (double**) malloc(num_samples*sizeof(double*));
     int i=0;
+    std::vector<int> d_len = {this->x_size, this->y_size};
+    std::cout<<"Printing Path\n";
     for(auto it=result.rbegin(); it!=result.rend(); it++){
-        std::cout<<this->node_list[*it]->point<<std::endl;
         (*plan)[i] = (double*) malloc(this->D*sizeof(double));
-        
         for(int j=0; j<this->D; j++){
-            (*plan)[i][j]=this->node_list[*it]->point[j];
+            (*plan)[i][j]=d_len[j]*this->node_list[*it]->point[j];
+            std::cout<<(*plan)[i][j]<<" ";
         }
         i++;
+        std::cout<<std::endl;
     }
     *planlength=num_samples;
     
@@ -347,14 +350,17 @@ bool RRTStar::plan(double* start,
     unsigned seed=0,exp_seed=0;
     std::default_random_engine eng(seed);
     std::default_random_engine exp_eng(exp_seed);
-    std::uniform_real_distribution<double> u_dist(0,2*PI);
+    std::uniform_real_distribution<double> u_dist(0,1.0);
     std::uniform_real_distribution<double> explt(0.0,1.0);
     
     this->start=Point(start,start+(int)this->D);
     this->end=Point(goal,goal+(int)this->D);
+    std::cout<<this->D<<" Dimension size"<<std::endl;
+    std::cout<<this->x_size<<" "<<this->y_size<<std::endl;
     std::cout<<this->forward_kinematics(this->start)<<" Start Position"<<std::endl;
     std::cout<<this->forward_kinematics(this->end)<<" End Position"<<std::endl;
-    
+    std::cout<<"Start node validity "<<IsValid(this->start, this->D, this->map, this->x_size, this->y_size)<<std::endl;
+    std::cout<<"End node validity "<<IsValid(this->end,this->D, this->map, this->x_size, this->y_size)<<std::endl;
     // Initialize
     NodeId start_id=this->insert(Point(start,start+(int)this->D));
     static_cast<StarNode*>(this->node_list[start_id])->cost=0;

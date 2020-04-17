@@ -21,13 +21,26 @@ midx = size(envmap,2)/2;
 x = zeros(length(armstart)+1,1);
 x(1) = midx;
 y = zeros(length(armstart)+1,1);
-for i = 1:size(armplan)
-    for j = 1:length(armstart)
-        x(j+1) = x(j) + LINKLENGTH_CELLS*cos(armplan(i,j));
-        y(j+1) = y(j) + LINKLENGTH_CELLS*sin(armplan(i,j));
-    end
-    plot(x,y, 'c-');
-    pause(0.1);
+for i = 1:size(armplan)-1
+    r = 5;
+    xc = armplan(i,1);
+    yc = armplan(i,2);
+    xn = armplan(i+1,1);
+    yn = armplan(i+1,2);
+    theta = linspace(0,2*pi);
+    x = r*sin(theta) + xc;
+    y = r*cos(theta) + yc;
+    plot(x,y)
+    fill(x, y, 'g')
+    plot([xc,xn],[yc,yn])
+    pause(0.01);
 end
-
+armplan(end,:)
+xc = armplan(end,1);
+yc = armplan(end,2);
+theta = linspace(0,2*pi);
+x = r*sin(theta) + xc;
+y = r*cos(theta) + yc;
+plot(x,y)
+fill(x, y, 'g')
 %armplan

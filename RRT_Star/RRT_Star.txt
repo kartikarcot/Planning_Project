@@ -1,0 +1,49 @@
+
+0.571429 0.298507 
+0.675676 0.538462 
+Nodes in graph 2
+Quality is 0.261621
+Path length is 3
+Time taken 5108
+0.571429 0.298507 
+0.675676 0.576923 
+Nodes in graph 304
+Quality is 1.30059
+Path length is 7
+Time taken 45388
+0.571429 0.298507 
+0.675676 0.576923 
+Nodes in graph 1101
+Quality is 1.4915
+Path length is 13
+Time taken 10320
+0.337838 0.307692 
+0.675676 0.576923 
+Nodes in graph 1056
+Quality is 2.02376
+Path length is 17
+Time taken 9457
+0.785714 0.875 
+0.785714 0.875 
+Nodes in graph 32
+Quality is 0.02
+Path length is 3
+Time taken 10
+0.142857 0.125 
+0.785714 0.875 
+Nodes in graph 691
+Quality is 2.69482
+Path length is 18
+Time taken 3426
+0.571429 0.298507 
+0.675676 0.538462 
+Nodes in graph 676
+Quality is 1.21917
+Path length is 10
+Time taken 3234
+0.571429 0.298507 
+0.675676 0.538462 
+Nodes in graph 1150
+Quality is 1.48474
+Path length is 15
+Time taken 11345

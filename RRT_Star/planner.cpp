@@ -163,21 +163,6 @@ static void planner(
 	return;
 }
 
-//static void plannerRRT(
-//	double*	map,
-//	int x_size,
-//	int y_size,
-//	double* armstart_anglesV_rad,
-//	double* armgoal_anglesV_rad,
-//	int numofDOFs,
-//	double*** plan,
-//	int* planlength)
-//{
-////	RRT rrt_planner(numofDOFs, map, x_size, y_size);
-////    RRT rrt();
-////    RRT rtree(2,map,3,3);
-//    //	rrt_planner.plan(armstart_anglesV_rad, armgoal_anglesV_rad, plan, planlength);
-//}
 
 //prhs contains input parameters (3): 
 //1st is matrix with all the obstacles
@@ -227,7 +212,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
 				"planner id should be between 0 and 3 inclusive");         
 	}
 	
-	//generate 40 random start positions
+	//generate random start positions
 	/*
 	unsigned seed=0;
     std::default_random_engine eng(seed);

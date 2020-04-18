@@ -7,5 +7,5 @@ for i = 141:300
     i
     startQ
     goalQ
-    runtest('../Maps/map2.txt', startQ, goalQ, 3);
+    runtest('../Maps/map3.txt', startQ, goalQ, 3);
 end

@@ -42,7 +42,7 @@
 #endif
 
 #define PI 3.141592654
-
+#define RADIUS 2
 //the length of each link in the arm (should be the same as the one used in runtest.m)
 #define LINKLENGTH_CELLS 10
 
@@ -84,11 +84,11 @@ int IsValid(std::vector<double> angles, int numofDOFs, double*	map,
 	int x_size, int y_size)
 {
     //std::cout<<std::endl;
-    int x0 = MAX(0,int(x_size*angles[0])-5), y0 = MAX(0,int(y_size*angles[1])-5);
+    int x0 = MAX(0,int(x_size*angles[0])-RADIUS), y0 = MAX(0,int(y_size*angles[1])-RADIUS);
 //    std::cout<<x0<<" "<<y0<<" "<<x0+10<<" "<<y0+10<<std::endl;
     //std::cout<<"201 56 "<<map[GETMAPINDEX(201, 56, x_size, y_size)]<<std::endl;
-    for(int i=0; i<11; i++){
-        for(int j=0; j<11; j++){
+    for(int i=0; i<2*RADIUS+1; i++){
+        for(int j=0; j<2*RADIUS+1; j++){
             int a = MIN(x0+i,x_size-1), b=MIN(y0+j,y_size-1);
             //std::cout<<a<<" "<<b<<" ";
             //std::cout<<map[GETMAPINDEX(a, b, x_size, y_size)]<<" ";
@@ -106,9 +106,9 @@ int IsValid(std::vector<double> angles, int numofDOFs, double*	map,
 int IsValid(double* angles, int numofDOFs, double* map,
     int x_size, int y_size)
 {
-    int x0 = MAX(0,int(x_size*angles[0])-5), y0 = MAX(0,int(y_size*angles[1])-5);
-    for(int i=0; i<11; i++){
-        for(int j=0; j<11; j++){
+    int x0 = MAX(0,int(x_size*angles[0])-RADIUS), y0 = MAX(0,int(y_size*angles[1])-RADIUS);
+    for(int i=0; i<2*RADIUS+1; i++){
+        for(int j=0; j<2*RADIUS+1; j++){
             int a = MIN(x0+i,x_size-1), b=MIN(y0+j,y_size-1);
             if(map[GETMAPINDEX(a, b, x_size, y_size)]==1){
                 std::cout<<"NOT VALID\n";

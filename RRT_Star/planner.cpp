@@ -89,7 +89,7 @@ int IsValid(std::vector<double> angles, int numofDOFs, double*	map,
     //std::cout<<"201 56 "<<map[GETMAPINDEX(201, 56, x_size, y_size)]<<std::endl;
     for(int i=0; i<11; i++){
         for(int j=0; j<11; j++){
-            int a = x0+i, b=y0+j;
+            int a = MIN(x0+i,x_size-1), b=MIN(y0+j,y_size-1);
             //std::cout<<a<<" "<<b<<" ";
             //std::cout<<map[GETMAPINDEX(a, b, x_size, y_size)]<<" ";
             if(map[GETMAPINDEX(a, b, x_size, y_size)]==1){
@@ -109,7 +109,8 @@ int IsValid(double* angles, int numofDOFs, double* map,
     int x0 = MAX(0,int(x_size*angles[0])-5), y0 = MAX(0,int(y_size*angles[1])-5);
     for(int i=0; i<11; i++){
         for(int j=0; j<11; j++){
-            if(map[GETMAPINDEX(x0+i, y0+j, x_size, y_size)]==1){
+            int a = MIN(x0+i,x_size-1), b=MIN(y0+j,y_size-1);
+            if(map[GETMAPINDEX(a, b, x_size, y_size)]==1){
                 std::cout<<"NOT VALID\n";
                 return 0;
             }
@@ -234,7 +235,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
 	Point q_rand(numofDOFs);
 	int cnt=0;
 	std::ofstream start=std::ofstream("start.txt", std::ios::app);
-	while(cnt<40){
+	while(cnt<1000){
 		for(int j=0; j<numofDOFs; j++)q_rand[j]=u_dist(eng);
 		if(IsValid(q_rand, numofDOFs, map,
                 x_size, y_size)){
@@ -244,7 +245,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
 	}
 	cnt=0;
 	std::ofstream end=std::ofstream("end.txt", std::ios::app);
-	while(cnt<40){
+	while(cnt<1000){
 		for(int j=0; j<numofDOFs; j++)q_rand[j]=u_dist(eng);
 		if(IsValid(q_rand, numofDOFs, map, 
                 x_size, y_size)){

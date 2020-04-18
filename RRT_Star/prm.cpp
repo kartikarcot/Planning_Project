@@ -89,7 +89,7 @@ PRM::PRM(unsigned D, double* map, int x_size, int y_size):Tree(D){
     //debug variable initialisations
     this->min_dist=1000000;
     this->min_ee_dist=1000000;
-    this->nodes=std::ofstream("nodes.txt");
+    this->nodes=std::ofstream("nodes.txt",std::ios::app);
     this->path=std::ofstream("path.txt");
     this->joints=std::ofstream("joints.txt");
     this->ofs=std::ofstream("PRM.txt",std::ios::app);
@@ -131,7 +131,11 @@ void PRM::connect( NodeId adj_pt_id, NodeId cur_id){
 
 bool PRM::new_config(const Point& q_near, const Point& q){
     double dist=distance(q_near, q);
-    Point unit_vec=(1/dist)*(q-q_near),q_sampled;
+    Point unit_vec,q_sampled;
+    if(dist!=0)
+        unit_vec=(1/dist)*(q-q_near);
+    else
+        unit_vec = {0.0,0.0};
     int no_samples = dist/(this->sf);
     double step_dist = this->sf;
     int break_flg=0,i=0;
@@ -222,6 +226,7 @@ bool PRM::dijkstra(int start, int end, std::vector<NodeId>& result){
         std::cout<<"start "<<result[result.size()-1]<<" "<<result[0]<<std::endl;
         return true;
     }
+    std::cout<<"Path not found!\n";
     return false;
 }
 
@@ -245,9 +250,14 @@ bool PRM::backtrack(double*** plan, int* planlength, int start_id, int end_id){
         for(int j=0; j<this->D; j++){
             (*plan)[i][j]=d_len[j]*this->node_list[*it]->point[j];
             std::cout<<(*plan)[i][j]<<" ";
+            if(flag){
+                this->nodes<<this->node_list[*it]->point[j]<<" ";
+            }
         }
         i++;
         std::cout<<std::endl;
+        if(flag)
+            this->nodes<<this->start<<" "<<this->end<<std::endl;
     }
     *planlength=num_samples;
     return flag;
@@ -279,7 +289,7 @@ bool PRM::plan(double* start,
                 this->x_size, this->y_size)){
             this->extend(q_rand);
         }
-        if(i%1000==0){
+        if(i%10000==0){
              std::cout<<i<<" Nodes sampled\n";
         }
     }
@@ -298,7 +308,9 @@ bool PRM::plan(double* start,
             ofs<<this->end<<std::endl;
             ofs<<"Nodes in graph "<<this->node_list.size()<<std::endl;
         }
-        
+    }
+    else{
+        std::cout<<"Path not found!\n";
     }
     nodes.close();
     path.close();

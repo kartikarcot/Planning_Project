@@ -47,7 +47,7 @@ class SimpleTree:
 
 class RRTConnect:
 
-    def __init__(self, dof, low, high, is_in_collision,*args):
+    def __init__(self, dof, low, high, is_in_collision, sampler):
         self._is_in_collision = is_in_collision
         self.num_dof = dof
         self.low = low
@@ -58,7 +58,12 @@ class RRTConnect:
         self._sf = 0.01
         self._target_p = 0.5
         self._explt_th = 0.2
-
+        self._sampler = sampler
+        self.count = 0
+        self.lam = 0
+        self.sampled_points = None
+        self.start = None
+        self.end = None
 
     def sample_valid_points(self,point):
         '''
@@ -67,7 +72,14 @@ class RRTConnect:
         '''
         q = None
         if np.random.random() > self._explt_th:
-            q = np.random.random(self.num_dof) * (self.high - self.low) + self.low
+            if np.random.random() < self.lam:
+                q = self.sampled_points[self.count]
+                self.count+=1
+                if self.count==1000:
+                    self.sampled_points = self._sampler.sample(1000,self.start, self.end)
+                    self.count = 0
+            else:
+                q = np.random.random(self.num_dof) * (self.high - self.low) + self.low
         else:
             q = point
         return q
@@ -131,11 +143,15 @@ class RRTConnect:
         tree_0 = SimpleTree(len(q_start))
         tree_0.insert_new_node(q_start)
         tree_0.root = q_start
-        
+        self.start = q_start.tolist()
+
         tree_1 = SimpleTree(len(q_target))
         tree_1.insert_new_node(q_target)
         tree_1.root = q_target
+        self.end = q_target.tolist()
 
+        self.sampled_points = self._sampler.sample(1000,self.start, self.end)
+        self.count = 0
         q_start_is_tree_0 = True
 
         s = time()

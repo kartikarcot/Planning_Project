@@ -15,7 +15,7 @@ import tensorflow as tf
 config = tf.ConfigProto()
 config.gpu_options.allow_growth=True
 
-MAP_NUM = 2
+MAP_NUM = 1
 DIR = "/home/arcot/Planning_Project/src/CVAE"
 MODEL_DIR = DIR+"/Models/0"+str(MAP_NUM)
 
@@ -78,10 +78,10 @@ if __name__ == "__main__":
     _map = np.load(map_file)
     row_size, col_size = _map.shape
     # initialize the objects
-    checker = CollisionChecker(_map, radius=5)
+    checker = CollisionChecker(_map, radius=2)
     sampler = Sampler(mini_map)
     sampler.initialize(MODEL_DIR)
-    # checker.is_in_collision(np.array([79,4]))
+    checker.is_in_collision(np.array([140,140]))
     # a = np.array( [ 84.56912625, 120.623248])
     # b = np.array( [ 92.87981051, 120.85332846])
     planner = RRTConnect(2,np.array([0,0]),np.array([row_size-1,col_size-1]), checker.is_in_collision, sampler)

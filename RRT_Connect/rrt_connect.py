@@ -54,13 +54,13 @@ class RRTConnect:
         self.high = high
         self._connect_dist = 0.8
         self._max_n_nodes = 5000
-        self._eps = 5
+        self._eps = 4
         self._sf = 0.01
         self._target_p = 0.5
         self._explt_th = 0.2
         self._sampler = sampler
         self.count = 0
-        self.lam = 0
+        self.lam = 0.1
         self.sampled_points = None
         self.start = None
         self.end = None
@@ -72,15 +72,15 @@ class RRTConnect:
         '''
         q = None
         if np.random.random() > self._explt_th:
-            q = np.random.random(self.num_dof) * (self.high - self.low) + self.low
-            # if np.random.random() < self.lam:
-            #     q = self.sampled_points[self.count]
-            #     self.count+=1
-            #     if self.count==1000:
-            #         self.sampled_points = self._sampler.sample(1000,self.start, self.end)
-            #         self.count = 0
-            # else:
-            #     q = np.random.random(self.num_dof) * (self.high - self.low) + self.low
+            # q = np.random.random(self.num_dof) * (self.high - self.low) + self.low
+            if np.random.random() < self.lam:
+                q = self.sampled_points[self.count]
+                self.count+=1
+                if self.count==1000:
+                    self.sampled_points = self._sampler.sample(1000,self.start, self.end)
+                    self.count = 0
+            else:
+                q = np.random.random(self.num_dof) * (self.high - self.low) + self.low
         else:
             q = point
         return q
@@ -99,10 +99,13 @@ class RRTConnect:
         length = np.linalg.norm(q1 - q0)
         sample_num = int(length/0.5)
         qs = np.linspace(q0, q1, sample_num)
-        for q in qs:
+        for id,q in enumerate(qs):
             if self._is_in_collision(q):
-                return False
-        return True
+                if id<2:
+                    return 0, None
+                else:
+                    return 1, qs[id-1]
+        return 2, q1
 
     
     def extend(self, tree_0, tree_1, constraint=None):
@@ -123,17 +126,25 @@ class RRTConnect:
             q_new = q_near + min(self._eps, norm)*(q_sample-q_near)/norm
             if constraint is not None:
                 q_new = self.project_to_constraint(q_new, constraint)
-            if self._is_in_collision(q_new):
+            signal, q_ext = self._is_seg_valid(q_near,q_new)
+            if signal==0:
                 continue
             # print("Found collision free configuration")
             # print(q_new)
-            new_node_id = tree.insert_new_node(q_new, parent=near_node_id)
-            q1_id,_ = tree_1.get_nearest_node(q_new)
+            new_node_id = tree.insert_new_node(q_ext, parent=near_node_id)
+            q1_id,_ = tree_1.get_nearest_node(q_ext)
             q1=tree_1.get_point(q1_id)
             # TODO: change this to a condition to check if collision free path is possible then connect
-            if self._is_seg_valid(q_new,q1):
-                print("HERE!",q_new,q1)
-                return True, new_node_id,q1_id
+            connect_signal, q1_ext = self._is_seg_valid(q1,q_new)
+            if connect_signal==0:
+                return False, new_node_id, q1_id
+            elif connect_signal==1:
+                q1_new_id = tree_1.insert_new_node(q1_ext, parent=q1_id)
+                return False, new_node_id, q1_new_id
+            else:
+                q1_new_id = tree_1.insert_new_node(q1_ext, parent=q1_id)
+                return True, new_node_id, q1_new_id
+            print("Did not enter if-else ladder")
             return False, new_node_id,q1_id
 
     def plan(self, q_start, q_target, constraint=None):
@@ -151,8 +162,8 @@ class RRTConnect:
         tree_1.root = q_target
         self.end = q_target.tolist()
 
-        # self.sampled_points = self._sampler.sample(1000,self.start, self.end)
-        # self.count = 0
+        self.sampled_points = self._sampler.sample(1000,self.start, self.end)
+        self.count = 0
         q_start_is_tree_0 = True
 
         s = time()

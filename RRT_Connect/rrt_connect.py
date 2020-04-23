@@ -72,14 +72,15 @@ class RRTConnect:
         '''
         q = None
         if np.random.random() > self._explt_th:
-            if np.random.random() < self.lam:
-                q = self.sampled_points[self.count]
-                self.count+=1
-                if self.count==1000:
-                    self.sampled_points = self._sampler.sample(1000,self.start, self.end)
-                    self.count = 0
-            else:
-                q = np.random.random(self.num_dof) * (self.high - self.low) + self.low
+            q = np.random.random(self.num_dof) * (self.high - self.low) + self.low
+            # if np.random.random() < self.lam:
+            #     q = self.sampled_points[self.count]
+            #     self.count+=1
+            #     if self.count==1000:
+            #         self.sampled_points = self._sampler.sample(1000,self.start, self.end)
+            #         self.count = 0
+            # else:
+            #     q = np.random.random(self.num_dof) * (self.high - self.low) + self.low
         else:
             q = point
         return q
@@ -131,7 +132,7 @@ class RRTConnect:
             q1=tree_1.get_point(q1_id)
             # TODO: change this to a condition to check if collision free path is possible then connect
             if self._is_seg_valid(q_new,q1):
-                print("HERE!")
+                print("HERE!",q_new,q1)
                 return True, new_node_id,q1_id
             return False, new_node_id,q1_id
 
@@ -150,8 +151,8 @@ class RRTConnect:
         tree_1.root = q_target
         self.end = q_target.tolist()
 
-        self.sampled_points = self._sampler.sample(1000,self.start, self.end)
-        self.count = 0
+        # self.sampled_points = self._sampler.sample(1000,self.start, self.end)
+        # self.count = 0
         q_start_is_tree_0 = True
 
         s = time()
@@ -171,6 +172,7 @@ class RRTConnect:
 
         if not q_start_is_tree_0:
             tree_0, tree_1 = tree_1, tree_0
+            node_id_new, node_id_1 = node_id_1, node_id_new
 
         if reached_target:
             tree_0_backward_path = tree_0.construct_path_to_root(node_id_new)

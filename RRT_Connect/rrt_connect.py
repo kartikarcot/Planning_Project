@@ -1,7 +1,7 @@
 from time import time
 import numpy as np
 from kdtree import KDTree
-
+import matplotlib.pyplot as plt
 
 class SimpleTree:
 
@@ -54,16 +54,18 @@ class RRTConnect:
         self.high = high
         self._connect_dist = 0.8
         self._max_n_nodes = 5000
-        self._eps = 4
+        self._eps = 5
         self._sf = 0.01
         self._target_p = 0.5
         self._explt_th = 0.2
         self._sampler = sampler
         self.count = 0
-        self.lam = 0.1
+        self.lam = 0.5
+        self.sampled_points_tree = SimpleTree(self.num_dof)
         self.sampled_points = None
         self.start = None
         self.end = None
+        np.random.seed(0)
 
     def sample_valid_points(self,point):
         '''
@@ -74,11 +76,10 @@ class RRTConnect:
         if np.random.random() > self._explt_th:
             # q = np.random.random(self.num_dof) * (self.high - self.low) + self.low
             if np.random.random() < self.lam:
+                # q_id,_ = self.sampled_points_tree.get_nearest_node(point)
+                # q = self.sampled_points_tree.get_point(q_id)
                 q = self.sampled_points[self.count]
                 self.count+=1
-                if self.count==1000:
-                    self.sampled_points = self._sampler.sample(1000,self.start, self.end)
-                    self.count = 0
             else:
                 q = np.random.random(self.num_dof) * (self.high - self.low) + self.low
         else:
@@ -147,7 +148,7 @@ class RRTConnect:
             print("Did not enter if-else ladder")
             return False, new_node_id,q1_id
 
-    def plan(self, q_start, q_target, constraint=None):
+    def plan(self, q_start, q_target, _map, constraint=None):
         '''
         Implement the RRT Connect algorithm
         returns a list of arrays
@@ -161,11 +162,12 @@ class RRTConnect:
         tree_1.insert_new_node(q_target)
         tree_1.root = q_target
         self.end = q_target.tolist()
-
-        self.sampled_points = self._sampler.sample(1000,self.start, self.end)
-        self.count = 0
+        # create a sampled points tree
+        self.sampled_points = self._sampler.sample(5000,self.start, self.end)
+        for i in range(0,5000):
+            self.sampled_points_tree.insert_new_node(self.sampled_points[i])
+        # start planning
         q_start_is_tree_0 = True
-
         s = time()
         for n_nodes_sampled in range(self._max_n_nodes):
             if n_nodes_sampled > 0 and n_nodes_sampled % 100 == 0:

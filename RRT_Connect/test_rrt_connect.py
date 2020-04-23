@@ -15,7 +15,7 @@ import tensorflow as tf
 config = tf.ConfigProto()
 config.gpu_options.allow_growth=True
 
-MAP_NUM = 1
+MAP_NUM = 2
 DIR = "/home/arcot/Planning_Project/src/CVAE"
 MODEL_DIR = DIR+"/Models/0"+str(MAP_NUM)
 
@@ -38,10 +38,10 @@ class CollisionChecker(object):
         return False
 
 class Sampler(object):
-    def __init__(self, _map):
+    def __init__(self, _map, rows, cols):
         self.unrolled_map = np.concatenate(_map, axis=0)
-        self._rows = _map.shape[0]
-        self._cols = _map.shape[1]
+        self._rows = rows
+        self._cols = cols
         self.sess = None
 
     def initialize(self, path):
@@ -72,22 +72,26 @@ class Sampler(object):
         return gen_samples
 
 if __name__ == "__main__":
-    mini_map_file = os.path.join(DIR+"/Maps/", 'map{}_mini.npy'.format(MAP_NUM))
+    mini_map_file = os.path.join(DIR+"/Training_Data/", 'map{}_mini.npy'.format(MAP_NUM))
     mini_map = np.load(mini_map_file)
     map_file = os.path.join(DIR+"/Training_Data/", 'map{}.npy'.format(MAP_NUM))
     _map = np.load(map_file)
     row_size, col_size = _map.shape
     # initialize the objects
     checker = CollisionChecker(_map, radius=2)
-    sampler = Sampler(mini_map)
+    sampler = Sampler(mini_map, row_size, col_size)
     sampler.initialize(MODEL_DIR)
+    sampled_points = sampler.sample(1000,[140,140], [10,10])
+    plt.imshow(_map)
+    plt.scatter(x=sampled_points[:,1], y=sampled_points[:,0], color='red', s=2)
+    plt.show()
     checker.is_in_collision(np.array([140,140]))
     # a = np.array( [ 84.56912625, 120.623248])
     # b = np.array( [ 92.87981051, 120.85332846])
     planner = RRTConnect(2,np.array([0,0]),np.array([row_size-1,col_size-1]), checker.is_in_collision, sampler)
     start = np.array([10,10])
     end = np.array([140,140])
-    path = planner.plan(start, end)
+    path = planner.plan(start, end, _map)
     print(path)
     plt.imshow(_map)
     plt.scatter(x=path[:,1], y=path[:,0], color="red", s=2)

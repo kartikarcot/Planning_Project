@@ -85,17 +85,18 @@ class FMT_Star(object):
         self.idxs = np.arange(0,N,1,dtype=int)
         # TODO: Implement the empirical formula derived in paper or radius
         self.r = 0.1
+        np.random.seed(0)
 
     def initialize(self, init, goal, low, high):
         if self.sampler is not None:
-            for i in range(self.N//2):
+            for i in range(self.N//5):
                 point = None
                 while True:
                     point = np.random.random(self.num_dof) * (high - low) + low
                     if not self.is_collision(point):
                         break
                 self.points[i,:] = point
-            j = self.N//2
+            j = self.N//5
             while(True):
                 generated_points = self.sampler(self.N, init.tolist(), goal.tolist())
                 for i in range(self.N):
@@ -127,10 +128,10 @@ class FMT_Star(object):
         # return True
         # TODO: replace with dynamic trjactory and check
         length = np.linalg.norm(q1 - q0)
-        sample_num = int(length/0.01)
+        sample_num = int(length/0.005)
         qs = np.linspace(q0, q1, sample_num)
         for _,q in enumerate(qs):
-            if self.is_collision(q*160):
+            if self.is_collision(q):
                 return False
         return True
 

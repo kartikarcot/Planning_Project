@@ -27,7 +27,10 @@ class CollisionChecker(object):
         self._cols = _map.shape[1]
 
     def is_in_collision(self,point):
-        point_=point.astype(int)
+        point_ = np.copy(point)
+        point_[0]*=self._rows
+        point_[1]*=self._cols
+        point_=point_.astype(int)
         row_min = max(0, point_[0]-self.radius)
         row_max = min(self._rows, point_[0]+self.radius)
         col_min = max(0, point_[1]-self.radius)
@@ -83,7 +86,11 @@ if __name__ == "__main__":
     # a = np.array( [ 84.56912625, 120.623248])
     # b = np.array( [ 92.87981051, 120.85332846])
     planner = FMT_Star(2, 2000, sampler.sample, checker.is_in_collision)
-    planner.initialize(np.array([10/160,10/160]), np.array([140/160,140/160]), np.array([0,0]), np.array([1,1]))
+    planner.initialize(np.array([20/160,20/160]), np.array([110/160,100/160]), np.array([0,0]), np.array([1,1]))
+    plt.imshow(_map)
+    plt.scatter(x=160*planner.points[:,1], y=160*planner.points[:,0], color='red', s=2)
+    plt.show()
+    print("Points Sampled")
     path = planner.solve()
     print(path)
     plt.imshow(_map)

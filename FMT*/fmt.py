@@ -85,7 +85,7 @@ class FMT_Star(object):
         self.idxs = np.arange(0,N,1,dtype=int)
         # TODO: Implement the empirical formula derived in paper or radius
         self.r = 0.1
-        np.random.seed(0)
+        # np.random.seed(0)
 
     def initialize(self, init, goal, low, high):
         if self.sampler is not None:

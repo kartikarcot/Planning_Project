@@ -68,6 +68,28 @@ class Sampler(object):
         gen_samples, _ = self.sess.run([y, z], feed_dict={z: np.random.randn(NUM_SAMPLES, z_dim), c: cond_samples})
         return gen_samples
 
+def generate_data(_map, no_pairs=10, filename="dataset"):
+    checker = CollisionChecker(_map, radius=2)
+    count = 0
+    data = []
+    while(count!=no_pairs):
+        start = np.random.random(2)
+        goal = np.random.random(2)
+        cond_1 = checker.is_in_collision(start)
+        cond_2 = checker.is_in_collision(goal)
+        if not cond_1 and not cond_2:
+            planner = FMT_Star(2, 2000, None, checker.is_in_collision)
+            planner.initialize(start, goal, low=np.array([0,0]), high=np.array([1,1]))
+            path = planner.solve()
+            print(path)
+            plt.imshow(_map)
+            if path.shape[0]!=0:
+                for item in path:
+                    data.append(item.tolist() + start.tolist()+ goal.tolist())
+                count+=1
+    np.savez(filename, data=data)
+
+
 if __name__ == "__main__":
     mini_map_file = os.path.join(DIR+"/Training_Data/", 'map{}_mini.npy'.format(MAP_NUM))
     mini_map = np.load(mini_map_file)
@@ -77,22 +99,25 @@ if __name__ == "__main__":
     # initialize the objects
     checker = CollisionChecker(_map, radius=2)
     sampler = Sampler(mini_map, row_size, col_size)
-    sampler.initialize(MODEL_DIR)
-    # sampled_points = sampler.sample(1000,[140,140], [10,10])
+    generate_data(_map)
+    # sampler.initialize(MODEL_DIR)
+    # data = np.load("dataset.npz")["data"]
+    # print(data.shape)
+    # sampled_points = sampler.sample(1000,[140/160,140/160], [10/160,10/160])
     # plt.imshow(_map)
-    # plt.scatter(x=sampled_points[:,1], y=sampled_points[:,0], color='red', s=2)
+    # plt.scatter(x=sampled_points[:,1]*160, y=sampled_points[:,0]*160, color='red', s=2)
     # plt.show()
     # checker.is_in_collision(np.array([140,140]))
     # a = np.array( [ 84.56912625, 120.623248])
     # b = np.array( [ 92.87981051, 120.85332846])
-    planner = FMT_Star(2, 2000, sampler.sample, checker.is_in_collision)
-    planner.initialize(np.array([20/160,20/160]), np.array([110/160,100/160]), np.array([0,0]), np.array([1,1]))
-    plt.imshow(_map)
-    plt.scatter(x=160*planner.points[:,1], y=160*planner.points[:,0], color='red', s=2)
-    plt.show()
-    print("Points Sampled")
-    path = planner.solve()
-    print(path)
-    plt.imshow(_map)
-    plt.scatter(x=path[:,1]*160, y=path[:,0]*160, color="red", s=2)
-    plt.show()
+    # planner = FMT_Star(2, 2000, sampler.sample, checker.is_in_collision)
+    # planner.initialize(np.random.random(2), np.random.random(2), np.array([0,0]), np.array([1,1]))
+    # plt.imshow(_map)
+    # plt.scatter(x=160*planner.points[:,1], y=160*planner.points[:,0], color='red', s=2)
+    # plt.show()
+    # print("Points Sampled")
+    # path = planner.solve()
+    # print(path)
+    # plt.imshow(_map)
+    # plt.scatter(x=path[:,1]*160, y=path[:,0]*160, color="red", s=2)
+    # plt.show()

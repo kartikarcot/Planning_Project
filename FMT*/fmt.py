@@ -126,14 +126,14 @@ class FMT_Star(object):
 
     def is_seg_valid(self, q0, q1):
         # return True
-        # TODO: replace with dynamic trjactory and check
-        length = np.linalg.norm(q1 - q0)
-        sample_num = int(length/0.005)
-        qs = np.linspace(q0, q1, sample_num)
-        for _,q in enumerate(qs):
-            if self.is_collision(q):
-                return False
-        return True
+        dist = np.linalg.norm(q1 - q0)
+        turning_radius = dist * 0.04
+        pts, cost = get_pts(q0,q1,turning_radius,0.01)
+        sample_num = pts.shape[0]
+        for i in range(sample_num):
+            if self.is_collision(pts[i,:]): # [x,y,theta]
+                return False, 0
+        return True, cost
 
     def get_neighbors(self, cand_filter, point):
         selected_idxs = self.idxs[cand_filter]

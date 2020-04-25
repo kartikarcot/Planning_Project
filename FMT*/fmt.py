@@ -1,4 +1,6 @@
 import numpy as np
+from dubins import *
+import matplotlib.pyplot as plt
 
 MAX = 1e5
 
@@ -133,6 +135,8 @@ class FMT_Star(object):
         for i in range(sample_num):
             if self.is_collision(pts[i,:]): # [x,y,theta]
                 return False, 0
+        plt.plot(pts[:,0],pts[:,1])
+        plt.show()
         return True, cost
 
     def get_neighbors(self, cand_filter, point):

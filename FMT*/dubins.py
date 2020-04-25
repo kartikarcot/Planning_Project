@@ -37,7 +37,6 @@ def dubins_shortest_path(path, q0, q1, rho):
 	best_cost = 1e10
 	best_word = -1
 	inter = dubins_intermediate_results(q0, q1, rho)
-	print(inter.alpha,inter.beta)
 	SegmentType = np.array(["LSL","LSR","RSL","RSR","RLR","LRL"])
 
 	path.qi[0] = q0[0]
@@ -221,7 +220,7 @@ def dubins_LSL(inter,out):
 		out[1] = p_sq**0.5
 		out[2] = mod2pi(inter.beta-tmp1)
 		return
-	print("No connection between configurations with this word")
+	# print("No connection between configurations with this word")
 	return
 
 def dubins_RSR(inter,out):
@@ -233,7 +232,7 @@ def dubins_RSR(inter,out):
 		out[1] = p_sq**0.5
 		out[2] = mod2pi(tmp1 - inter.beta)
 		return
-	print("No connection between configurations with this word")
+	# print("No connection between configurations with this word")
 	return
 
 def dubins_LSR(inter,out):
@@ -245,7 +244,7 @@ def dubins_LSR(inter,out):
 		out[1] = p
 		out[2] = mod2pi(tmp0 - mod2pi(inter.beta))
 		return
-	print("No connection between configurations with this word")
+	# print("No connection between configurations with this word")
 	return
 
 def dubins_RSL(inter,out):
@@ -257,7 +256,7 @@ def dubins_RSL(inter,out):
 		out[1] = p
 		out[2] = mod2pi(mod2pi(inter.beta)-tmp0)
 		return
-	print("No connection between configurations with this word")
+	# print("No connection between configurations with this word")
 	return
 
 def dubins_RLR(inter,out):
@@ -270,7 +269,7 @@ def dubins_RLR(inter,out):
 		out[1] = p
 		out[2] = mod2pi(inter.alpha - inter.beta - t + mod2pi(p))
 		return
-	print("No connection between configurations with this word")
+	# print("No connection between configurations with this word")
 	return
 
 def dubins_LRL(inter,out):
@@ -283,7 +282,7 @@ def dubins_LRL(inter,out):
 		out[1] = p
 		out[2] = mod2pi(mod2pi(inter.beta) - inter.alpha - t + mod2pi(p))
 		return
-	print("No connection between configurations with this word")
+	# print("No connection between configurations with this word")
 	return
 # SegmentType = np.array([[0,1,0],[0,1,2],[2,1,0],[2,1,2],[2,0,2],[0,2,0]])
 
@@ -300,16 +299,21 @@ def dubins_word(inter,pathType,out):
 		return dubins_LRL(inter,out)
 	elif pathType == "RLR":
 		return dubins_RLR(inter,out)
-	print("Path parameterisitation error")
+	# print("Path parameterisitation error")
 	return
 
 def get_pts(q0,q1,turning_radius,step_size):
+	q0[0], q0[1] = q0[1], q0[0]
+	q1[0], q1[1] = q1[1], q1[0]
 	path = DubinsPath()
 	dubins_shortest_path(path,q0,q1,turning_radius)
 	pts,cost = dubins_path_sample_many(path,step_size)
+	pts[:,[0,1]] = pts[:,[1,0]]
 	return pts,cost
 
 def get_cost(q0,q1,turning_radius,step_size):
+	q0[0], q0[1] = q0[1], q0[0]
+	q1[0], q1[1] = q1[1], q1[0]
 	path = DubinsPath()
 	dubins_shortest_path(path,q0,q1,turning_radius)
 	pts,cost = dubins_path_sample_many(path,step_size)

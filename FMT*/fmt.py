@@ -27,7 +27,7 @@ class Tree:
         self.count+=1
         self._map[self.count] = Node(self.count, point,parent)
         return self.count
-        
+
     def get_parent(self, child_id):
         node = self._map.get(child_id, None)
         if node is None:
@@ -130,20 +130,29 @@ class FMT_Star(object):
         # return True
         dist = np.linalg.norm(q1 - q0)
         turning_radius = dist * 0.04
-        pts, cost = get_pts(q0,q1,turning_radius,0.01)
+        pts, cost = get_pts(q0,q1,turning_radius,0.01) #[y,x,theta]
         sample_num = pts.shape[0]
         for i in range(sample_num):
-            if self.is_collision(pts[i,:]): # [x,y,theta]
+            if self.is_collision(pts[i,:]): # [y,x,theta]
                 return False, 0
-        plt.plot(pts[:,0],pts[:,1])
-        plt.show()
+        # plt.plot(pts[:,0],pts[:,1])
+        # plt.show()
         return True, cost
 
     def get_neighbors(self, cand_filter, point):
         selected_idxs = self.idxs[cand_filter]
         selected_points = self.points[cand_filter]
-        distance = np.linalg.norm(selected_points-point, axis=1)
-        within_r = distance <self.r
+        turning_radius = np.linalg.norm(selected_points[0,:2]-point[:2])*0.1
+        step_size = turning_radius / 2
+        num_cand = selected_points.shape[0]
+        distance = np.zeros(selected_points.shape[0])
+        for i in range(selected_points.shape[0]):
+            print(selected_points.shape[0])
+            pts,distance[i] = get_pts(point,selected_points[i],turning_radius,step_size)
+            plt.plot(pts[:,0],pts[:,1])
+            err('flag')
+            # plt.show()
+        within_r = distance < self.r
         neighbor_idxs = selected_idxs[within_r]
         neighbor_distances = distance[within_r]
         return neighbor_idxs, neighbor_distances

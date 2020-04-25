@@ -91,9 +91,11 @@ def generate_data(_map, no_pairs=10, filename="dataset"):
 
 
 if __name__ == "__main__":
-    mini_map_file = os.path.join(DIR+"/Training_Data/", 'map{}_mini.npy'.format(MAP_NUM))
+    # mini_map_file = os.path.join(DIR+"/Training_Data/", 'map{}_mini.npy'.format(MAP_NUM))
+    mini_map_file = "../CVAE/Training_Data/map2_mini.npy"
     mini_map = np.load(mini_map_file)
-    map_file = os.path.join(DIR+"/Training_Data/", 'map{}.npy'.format(MAP_NUM))
+    # map_file = os.path.join(DIR+"/Training_Data/", 'map{}.npy'.format(MAP_NUM))
+    map_file = os.path.join("../CVAE/Training_Data/", 'map{}.npy'.format(MAP_NUM))
     _map = np.load(map_file)
     row_size, col_size = _map.shape
     # initialize the objects

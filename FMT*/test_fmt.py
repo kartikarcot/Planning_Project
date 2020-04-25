@@ -1,4 +1,4 @@
-import numpy as np 
+import numpy as np
 from fmt import FMT_Star
 import os
 import matplotlib.pyplot as plt
@@ -39,7 +39,7 @@ class CollisionChecker(object):
         if region.any():
             return True
         return False
-
+#"hi"
 class Sampler(object):
     def __init__(self, _map, rows, cols):
         self.unrolled_map = np.concatenate(_map, axis=0)
@@ -60,7 +60,7 @@ class Sampler(object):
         NUM_SAMPLES = nos  # number of samples for model to generate
         cond = np.concatenate([np.array(init+goal), self.unrolled_map])
         # same condition repeated NUM_SAMPLES times
-        cond_samples = np.repeat([cond],NUM_SAMPLES,axis=0)  
+        cond_samples = np.repeat([cond],NUM_SAMPLES,axis=0)
         # directly sample from the latent space to generate predicted samples
         z = self.sess.graph.get_tensor_by_name('Add:0')
         c = self.sess.graph.get_tensor_by_name('c:0')

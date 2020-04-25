@@ -164,7 +164,7 @@ def dubins_path_sample_many(path, stepSize):
 		pts.append(copy.copy(q))
 		x += stepSize
 	pts = np.array(pts)
-	return pts
+	return pts,x
 
 # def dubins_shortest_path(path, q0, q1, rho):
 	# best_cost = 1e10
@@ -306,5 +306,5 @@ def dubins_word(inter,pathType,out):
 def get_pts(q0,q1,turning_radius,step_size):
 	path = DubinsPath()
 	dubins_shortest_path(path,q0,q1,turning_radius)
-	pts = dubins_path_sample_many(path,step_size)
-	return pts
+	pts,cost = dubins_path_sample_many(path,step_size)
+	return pts,cost

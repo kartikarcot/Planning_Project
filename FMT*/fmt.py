@@ -91,6 +91,7 @@ class FMT_Star(object):
         self.idxs = np.arange(0,N,1,dtype=int)
         # TODO: Implement the empirical formula derived in paper or radius
         self.r = 0.1
+        self.tr_min = self.r / 10
         # np.random.seed(0)
 
     def initialize(self, init, goal, low, high):
@@ -131,37 +132,49 @@ class FMT_Star(object):
         self.cost[0] = 0
 
     def is_seg_valid(self, q0, q1):
-        # return True
-        dist = np.linalg.norm(q1 - q0)
-        turning_radius = dist * 0.04
-        pts, cost = get_pts(q0,q1,turning_radius,0.01) #[y,x,theta]
+        dist = np.linalg.norm(q0[:2]-q1[:2])
+        tr = np.maximum(self.tr_min,dist * 0.2)
+        pts, cost = get_pts(q0,q1,tr,tr*0.1) #[y,x,theta]
         sample_num = pts.shape[0]
         for i in range(sample_num):
             if self.is_collision(pts[i,:]): # [y,x,theta]
-                return False, 0
-        # plt.plot(pts[:,0],pts[:,1])
-        # plt.show()
-        return True, cost
+                print(pts[i,:]*160,'col')
+                return False
+        return True
+
+    def get_path(self,waypoints):
+        path = np.array([[0,0,0]])
+        for i in range(waypoints.shape[0] - 1):
+            q0 = waypoints[i,:]
+            q1 = waypoints[i+1,:]
+            distance = np.linalg.norm(q0[:2]-q1[:2])
+            tr = np.maximum(self.tr_min,distance * 0.2)
+            pts, _ = get_pts(q0,q1,tr,tr*0.1)
+            path = np.concatenate((path,pts))
+        return path
 
     def get_neighbors(self, cand_filter, point):
         selected_idxs = self.idxs[cand_filter]
+        # print("selected",selected_idxs)
         selected_points = self.points[cand_filter]
         distance_cart = np.linalg.norm(selected_points[:,:2]-point[:2],axis=1)
-        within_rough = distance_cart < 5*self.r
+        # print("num cand",selected_points.shape)
+        # print("selected", selected_points)
+        # print("distance cart", distance_cart)
+        within_rough = distance_cart < 2*self.r
         selected_idx_roughpass = selected_idxs[within_rough]
         selected_points_roughpass = selected_points[within_rough]
-        tr_min = self.r / 4
+        # print("num rough",selected_points_roughpass.shape)
         distance = np.zeros(selected_points_roughpass.shape[0])
         ## multiprocessing
         distance_roughpass = np.linalg.norm(selected_points_roughpass[:,:2]-point[:2],axis = 1)
         tr_temp = distance_roughpass * 0.2
-        tr = np.maximum(tr_temp,tr_min)
-        step_size = tr*0.05
+        tr = np.maximum(tr_temp,self.tr_min)
         pool = Pool(processes = self.n_cores)
         infos = np.zeros((selected_points_roughpass.shape[0],5))
         infos[:,:3] = selected_points_roughpass
         infos[:,3] = tr
-        infos[:,4] = tr * 0.05
+        infos[:,4] = tr * 0.1
         distance = pool.map(partial(get_cost_multi,q0=point),infos)
         pool.close()
         distance = np.array(distance)
@@ -182,13 +195,13 @@ class FMT_Star(object):
         #     plt.axis('equal')
         #     print('two',pts2[0,:],pts2[-1,:])
         #     plt.show()
-        within_r = distance < self.r
+        within_r = distance < self.r * 5
         # err('flag')
         # print(distance_cart,"cart")
         # print(distance_roughpass)
         neighbor_idxs = selected_idx_roughpass[within_r]
         neighbor_distances = distance[within_r]
-        print(neighbor_distances.shape)
+        # print("neibor distances",neighbor_distances.shape)
         return neighbor_idxs, neighbor_distances
 
     def extend(self):
@@ -206,7 +219,7 @@ class FMT_Star(object):
             min_cost_idx = open_nbr_idxs[np.argmin(net_cost)]
             min_cost_point = self.points[min_cost_idx,:]
             if self.is_seg_valid(min_cost_point, self.points[unv_nbr_idx]):
-                print("one POint found")
+                # print("one Point found")
                 self.unvisit[unv_nbr_idx] = False
                 self.parent[unv_nbr_idx] = min_cost_idx
                 self.cost[unv_nbr_idx] = min_cost
@@ -226,12 +239,13 @@ class FMT_Star(object):
                 break
         if not self.unvisit[-1]:
             print("Plan found")
-            path = []
+            waypoints = []
             id = self.N-1
             while id!=-1:
-                path.append(self.points[id,:])
+                waypoints.append(self.points[id,:])
                 id = self.parent[id]
-            return np.array(path)
+            path = self.get_path(np.array(waypoints))
+            return path, np.array(waypoints)
         else:
             print("Plan Not found")
             return np.array([])

@@ -100,15 +100,17 @@ if __name__ == "__main__":
     row_size, col_size = _map.shape
     # initialize the objects
     checker = CollisionChecker(_map, radius=2)
-    planner = FMT_Star(3, 20000, None, checker.is_in_collision)
+    planner = FMT_Star(3, 500, None, checker.is_in_collision)
     planner.initialize(np.array([10/160,10/160,0]), np.array([140/160,140/160,0]), np.array([0,0,0]), np.array([1,1,2*np.pi]))
     # comment this if you dont need to visualise the sampled points
     # plt.scatter(x=160*planner.points[:,1], y=160*planner.points[:,0], color='red', s=2)
     # plt.imshow(_map)
     # planning the path
-    path = planner.solve()
-    print(path)
+    path,waypoints = planner.solve()
     if path.shape[0]!=0:
+        plt.figure()
         plt.imshow(_map)
         plt.scatter(x=160*path[:,1], y=160*path[:,0], color='red', s=2)
+        plt.scatter(x=160*waypoints[:,1], y=160*waypoints[:,0], color='green', s=10)
         plt.show()
+        plt.close('all');

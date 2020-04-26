@@ -311,13 +311,19 @@ def get_pts(q0,q1,turning_radius,step_size):
 	path2 = DubinsPath()
 	dubins_shortest_path(path2,q1,q0,turning_radius)
 	pts2,cost2 = dubins_path_sample_many(path2,step_size)
-	if(cost1 < cost2):
+	end_1, end_2 = np.sum(abs(pts1[-1,:2]-q0[:2])),np.sum(abs(pts2[-1,:2]-q0[:2]))
+	if(min(end_1,end_2) > 0.01):
+		q0[0], q0[1] = q0[1], q0[0]
+		q1[0], q1[1] = q1[1], q1[0]
+		return get_pts(q0,q1,turning_radius/2,step_size/2)
+	if(end_1 < end_2):
 		pts, cost = pts1, cost1
 	else:
 		pts,cost = pts2, cost2
 	pts[:,[0,1]] = pts[:,[1,0]]
 	q0[0], q0[1] = q0[1], q0[0]
 	q1[0], q1[1] = q1[1], q1[0]
+	# print(pts.shape)
 	return pts,cost
 
 def get_cost(q0,q1,turning_radius,step_size):
@@ -329,9 +335,13 @@ def get_cost(q0,q1,turning_radius,step_size):
 	path2 = DubinsPath()
 	dubins_shortest_path(path2,q1,q0,turning_radius)
 	pts2,cost2 = dubins_path_sample_many(path2,step_size)
+	if(np.sum(abs(pts2[-1,:2]-q0[:2])) > np.sum(abs(pts1[-1,:2] - q0[:2]))):
+		pts, cost = pts1, cost1
+	else:
+		pts,cost = pts2, cost2
 	q0[0], q0[1] = q0[1], q0[0]
 	q1[0], q1[1] = q1[1], q1[0]
-	return min(cost,cost2)
+	return cost
 
 def get_cost_multi(info,q0):
 	q1, turning_radius, step_size = info[:3], info[3], info[4]
@@ -343,7 +353,10 @@ def get_cost_multi(info,q0):
 	path2 = DubinsPath()
 	dubins_shortest_path(path2,q1,q0,turning_radius)
 	pts2,cost2 = dubins_path_sample_many(path2,step_size)
+	if(np.sum(abs(pts2[-1,:2]-q0[:2])) > np.sum(abs(pts1[-1,:2] - q0[:2]))):
+		pts, cost = pts1, cost1
+	else:
+		pts,cost = pts2, cost2
 	q0[0], q0[1] = q0[1], q0[0]
 	q1[0], q1[1] = q1[1], q1[0]
-	# return cost1
-	return min(cost1,cost2)
+	return cost

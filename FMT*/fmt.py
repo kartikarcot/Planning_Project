@@ -145,7 +145,6 @@ class FMT_Star(object):
 
     def get_neighbors(self, cand_filter, point):
         selected_idxs = self.idxs[cand_filter]
-        print(selected_idxs,"idx")
         selected_points = self.points[cand_filter]
         distance_cart = np.linalg.norm(selected_points[:,:2]-point[:2],axis=1)
         within_rough = distance_cart < 5*self.r
@@ -164,19 +163,27 @@ class FMT_Star(object):
         infos[:,3] = tr
         infos[:,4] = tr * 0.05
         distance = pool.map(partial(get_cost_multi,q0=point),infos)
+        pool.close()
         distance = np.array(distance)
-        # for i in range(selected_points_roughpass.shape[0]): #single_thread
-            # pt = selected_points_roughpass[i]
-            # tr_temp = np.linalg.norm(pt[:2] - point[:2]) * 0.2
-            # tr = max(tr_temp,tr_min)
-            # print(tr)
-            # step_size = tr * 0.05
-            # distance[i] = get_cost(point,pt,tr,step_size)
-            # plt.plot(pts[:,0],pts[:,1])
-            # plt.axis('equal')
-            # plt.show()
-        # err('flag')
+        ## single_thread
+        # for i in range(selected_points_roughpass.shape[0]):
+        #     pt = selected_points_roughpass[i]
+        #     tr_temp = np.linalg.norm(pt[:2] - point[:2]) * 0.2
+        #     tr = max(tr_temp,tr_min)
+        #     print(tr)
+        #     step_size = tr * 0.05
+        #     pts1, distance[i] = get_pts(point,pt,tr,step_size)
+        #     plt.plot(pts1[:,0],pts1[:,1])
+        #     plt.axis('equal')
+        #     print('one',pts1[0,:],pts1[-1,:])
+        #     plt.show()
+        #     pts2, distance[i] = get_pts(pt,point,tr,step_size)
+        #     plt.plot(pts2[:,0],pts2[:,1])
+        #     plt.axis('equal')
+        #     print('two',pts2[0,:],pts2[-1,:])
+        #     plt.show()
         within_r = distance < self.r
+        # err('flag')
         # print(distance_cart,"cart")
         # print(distance_roughpass)
         neighbor_idxs = selected_idx_roughpass[within_r]

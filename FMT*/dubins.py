@@ -305,25 +305,45 @@ def dubins_word(inter,pathType,out):
 def get_pts(q0,q1,turning_radius,step_size):
 	q0[0], q0[1] = q0[1], q0[0]
 	q1[0], q1[1] = q1[1], q1[0]
-	path = DubinsPath()
-	dubins_shortest_path(path,q0,q1,turning_radius)
-	pts,cost = dubins_path_sample_many(path,step_size)
+	path1 = DubinsPath()
+	dubins_shortest_path(path1,q0,q1,turning_radius)
+	pts1,cost1 = dubins_path_sample_many(path1,step_size)
+	path2 = DubinsPath()
+	dubins_shortest_path(path2,q1,q0,turning_radius)
+	pts2,cost2 = dubins_path_sample_many(path2,step_size)
+	if(cost1 < cost2):
+		pts, cost = pts1, cost1
+	else:
+		pts,cost = pts2, cost2
 	pts[:,[0,1]] = pts[:,[1,0]]
+	q0[0], q0[1] = q0[1], q0[0]
+	q1[0], q1[1] = q1[1], q1[0]
 	return pts,cost
 
 def get_cost(q0,q1,turning_radius,step_size):
 	q0[0], q0[1] = q0[1], q0[0]
 	q1[0], q1[1] = q1[1], q1[0]
 	path = DubinsPath()
-	dubins_shortest_path(path,q0,q1,turning_radius)
-	pts,cost = dubins_path_sample_many(path,step_size)
-	return cost
+	dubins_shortest_path(path1,q0,q1,turning_radius)
+	pts,cost = dubins_path_sample_many(path1,step_size)
+	path2 = DubinsPath()
+	dubins_shortest_path(path2,q1,q0,turning_radius)
+	pts2,cost2 = dubins_path_sample_many(path2,step_size)
+	q0[0], q0[1] = q0[1], q0[0]
+	q1[0], q1[1] = q1[1], q1[0]
+	return min(cost,cost2)
 
 def get_cost_multi(info,q0):
 	q1, turning_radius, step_size = info[:3], info[3], info[4]
 	q0[0], q0[1] = q0[1], q0[0]
 	q1[0], q1[1] = q1[1], q1[0]
-	path = DubinsPath()
-	dubins_shortest_path(path,q0,q1,turning_radius)
-	pts,cost = dubins_path_sample_many(path,step_size)
-	return cost
+	path1 = DubinsPath()
+	dubins_shortest_path(path1,q0,q1,turning_radius)
+	pts1,cost1 = dubins_path_sample_many(path1,step_size)
+	path2 = DubinsPath()
+	dubins_shortest_path(path2,q1,q0,turning_radius)
+	pts2,cost2 = dubins_path_sample_many(path2,step_size)
+	q0[0], q0[1] = q0[1], q0[0]
+	q1[0], q1[1] = q1[1], q1[0]
+	# return cost1
+	return min(cost1,cost2)

@@ -1,6 +1,9 @@
 import numpy as np
 from dubins import *
 import matplotlib.pyplot as plt
+import multiprocessing
+from multiprocessing import Pool
+from functools import partial
 
 MAX = 1e5
 
@@ -75,6 +78,7 @@ class FMT_Star(object):
     def __init__(self, dim, N, sampler=None, is_collision=None):
         self.points = np.empty((N,dim), dtype=float)
         self.N = N
+        self.n_cores = multiprocessing.cpu_count()
         self.num_dof = dim
         self.sampler = sampler
         self.is_collision = is_collision
@@ -141,20 +145,43 @@ class FMT_Star(object):
 
     def get_neighbors(self, cand_filter, point):
         selected_idxs = self.idxs[cand_filter]
+        print(selected_idxs,"idx")
         selected_points = self.points[cand_filter]
-        turning_radius = np.linalg.norm(selected_points[0,:2]-point[:2])*0.1
-        step_size = turning_radius / 2
-        num_cand = selected_points.shape[0]
-        distance = np.zeros(selected_points.shape[0])
-        for i in range(selected_points.shape[0]):
-            print(selected_points.shape[0])
-            pts,distance[i] = get_pts(point,selected_points[i],turning_radius,step_size)
-            plt.plot(pts[:,0],pts[:,1])
-            err('flag')
+        distance_cart = np.linalg.norm(selected_points[:,:2]-point[:2],axis=1)
+        within_rough = distance_cart < 5*self.r
+        selected_idx_roughpass = selected_idxs[within_rough]
+        selected_points_roughpass = selected_points[within_rough]
+        tr_min = self.r / 4
+        distance = np.zeros(selected_points_roughpass.shape[0])
+        ## multiprocessing
+        distance_roughpass = np.linalg.norm(selected_points_roughpass[:,:2]-point[:2],axis = 1)
+        tr_temp = distance_roughpass * 0.2
+        tr = np.maximum(tr_temp,tr_min)
+        step_size = tr*0.05
+        pool = Pool(processes = self.n_cores)
+        infos = np.zeros((selected_points_roughpass.shape[0],5))
+        infos[:,:3] = selected_points_roughpass
+        infos[:,3] = tr
+        infos[:,4] = tr * 0.05
+        distance = pool.map(partial(get_cost_multi,q0=point),infos)
+        distance = np.array(distance)
+        # for i in range(selected_points_roughpass.shape[0]): #single_thread
+            # pt = selected_points_roughpass[i]
+            # tr_temp = np.linalg.norm(pt[:2] - point[:2]) * 0.2
+            # tr = max(tr_temp,tr_min)
+            # print(tr)
+            # step_size = tr * 0.05
+            # distance[i] = get_cost(point,pt,tr,step_size)
+            # plt.plot(pts[:,0],pts[:,1])
+            # plt.axis('equal')
             # plt.show()
+        # err('flag')
         within_r = distance < self.r
-        neighbor_idxs = selected_idxs[within_r]
+        # print(distance_cart,"cart")
+        # print(distance_roughpass)
+        neighbor_idxs = selected_idx_roughpass[within_r]
         neighbor_distances = distance[within_r]
+        print(neighbor_distances.shape)
         return neighbor_idxs, neighbor_distances
 
     def extend(self):
@@ -172,6 +199,7 @@ class FMT_Star(object):
             min_cost_idx = open_nbr_idxs[np.argmin(net_cost)]
             min_cost_point = self.points[min_cost_idx,:]
             if self.is_seg_valid(min_cost_point, self.points[unv_nbr_idx]):
+                print("one POint found")
                 self.unvisit[unv_nbr_idx] = False
                 self.parent[unv_nbr_idx] = min_cost_idx
                 self.cost[unv_nbr_idx] = min_cost

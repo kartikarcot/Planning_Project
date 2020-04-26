@@ -318,3 +318,12 @@ def get_cost(q0,q1,turning_radius,step_size):
 	dubins_shortest_path(path,q0,q1,turning_radius)
 	pts,cost = dubins_path_sample_many(path,step_size)
 	return cost
+
+def get_cost_multi(info,q0):
+	q1, turning_radius, step_size = info[:3], info[3], info[4]
+	q0[0], q0[1] = q0[1], q0[0]
+	q1[0], q1[1] = q1[1], q1[0]
+	path = DubinsPath()
+	dubins_shortest_path(path,q0,q1,turning_radius)
+	pts,cost = dubins_path_sample_many(path,step_size)
+	return cost

@@ -11,7 +11,7 @@ def state_update(x, u, car, dt):
     alpha_r = math.atan2(w*car.lr - vy, vx)
     Ffy = car.Df*math.sin(car.Cf*math.atan(car.Bf*alpha_f))
     Fry = car.Dr*math.sin(car.Cr*math.atan(car.Br*alpha_r))
-    Frx = (car.Cm1 - car.Cm2*vx)*duty_cycle # - car.Cr - car.Cr2*vx**2
+    Frx = (car.Cm1 - car.Cm2*vx)*duty_cycle #- car.Cr - car.Cr2*vx**2
 
     # generate state update
     xdot = vx*math.cos(psi) - vy*math.sin(psi)

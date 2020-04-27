@@ -92,6 +92,7 @@ class FMT_Star(object):
         # TODO: Implement the empirical formula derived in paper or radius
         self.r = 0.1
         self.tr_min = self.r / 10
+        self.pool = Pool(processes = self.n_cores)
         # np.random.seed(0)
 
     def initialize(self, init, goal, low, high):
@@ -138,7 +139,7 @@ class FMT_Star(object):
         sample_num = pts.shape[0]
         for i in range(sample_num):
             if self.is_collision(pts[i,:]): # [y,x,theta]
-                print(pts[i,:]*160,'col')
+                # print(pts[i,:]*160,'col')
                 return False
         return True
 
@@ -170,13 +171,11 @@ class FMT_Star(object):
         distance_roughpass = np.linalg.norm(selected_points_roughpass[:,:2]-point[:2],axis = 1)
         tr_temp = distance_roughpass * 0.2
         tr = np.maximum(tr_temp,self.tr_min)
-        pool = Pool(processes = self.n_cores)
         infos = np.zeros((selected_points_roughpass.shape[0],5))
         infos[:,:3] = selected_points_roughpass
         infos[:,3] = tr
         infos[:,4] = tr * 0.1
-        distance = pool.map(partial(get_cost_multi,q0=point),infos)
-        pool.close()
+        distance = self.pool.map(partial(get_cost_multi,q0=point),infos)
         distance = np.array(distance)
         ## single_thread
         # for i in range(selected_points_roughpass.shape[0]):
@@ -232,11 +231,12 @@ class FMT_Star(object):
         while(True):
             self.extend()
             i+=1
-            if i%100==0:
+            if i%10==0:
                 print(i, np.sum(self.closed))
             # break if final node visited or open list is empty
             if not self.unvisit[-1] or not self.open.any():
                 break
+        self.pool.close()
         if not self.unvisit[-1]:
             print("Plan found")
             waypoints = []

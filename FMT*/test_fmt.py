@@ -12,11 +12,13 @@ logging.disable(logging.WARNING)
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 # Tensorflow related
 import tensorflow as tf
+import yappi
+
 config = tf.ConfigProto()
 config.gpu_options.allow_growth=True
 
 MAP_NUM = 2
-DIR = "/home/arcot/Planning_Project/src/CVAE"
+DIR = "CVAE"
 MODEL_DIR = DIR+"/Models/0"+str(MAP_NUM)
 
 class CollisionChecker(object):
@@ -27,6 +29,7 @@ class CollisionChecker(object):
         self._cols = _map.shape[1]
 
     def is_in_collision(self,point):
+        return False
         point_ = np.copy(point)
         point_[0]*=self._rows
         point_[1]*=self._cols
@@ -92,10 +95,10 @@ def generate_data(_map, no_pairs=10, filename="dataset"):
 
 if __name__ == "__main__":
     # mini_map_file = os.path.join(DIR+"/Training_Data/", 'map{}_mini.npy'.format(MAP_NUM))
-    mini_map_file = "../CVAE/Training_Data/map2_mini.npy"
+    mini_map_file = DIR + "/Training_Data/map2_mini.npy"
     mini_map = np.load(mini_map_file)
     # map_file = os.path.join(DIR+"/Training_Data/", 'map{}.npy'.format(MAP_NUM))
-    map_file = os.path.join("../CVAE/Training_Data/", 'map{}.npy'.format(MAP_NUM))
+    map_file = os.path.join(DIR + "/Training_Data/", 'map{}.npy'.format(MAP_NUM))
     _map = np.load(map_file)
     row_size, col_size = _map.shape
     # initialize the objects
@@ -106,7 +109,19 @@ if __name__ == "__main__":
     # plt.scatter(x=160*planner.points[:,1], y=160*planner.points[:,0], color='red', s=2)
     # plt.imshow(_map)
     # planning the path
+
+    yappi.set_clock_type('cpu')
+    yappi.start()
+
     path,waypoints = planner.solve()
+
+    yappi.get_func_stats().print_all(columns={
+        0: ("name", 50),
+        1: ("ncall", 10),
+        2: ("tsub", 8),
+        3: ("ttot", 8),
+        4: ("tavg", 8)})
+
     if path.shape[0]!=0:
         plt.figure()
         plt.imshow(_map)

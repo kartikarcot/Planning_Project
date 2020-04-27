@@ -1,3 +1,4 @@
 .DS_Store
 Planning_Project.xcworkspace/*
 *.pyc
+.idea/*

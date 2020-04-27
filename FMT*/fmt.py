@@ -144,8 +144,8 @@ class FMT_Star(object):
         else:
             dist = np.linalg.norm(q0[:2]-q1[:2])
             tr = np.maximum(self.tr_min,dist * 0.2)
-            pts, cost = get_pts(q0,q1,tr,tr) #[y,x,theta]
-            length = np.linalg.norm(q1 - q0)
+            pts, cost = get_pts(q0,q1,tr,tr*0.1) #[y,x,theta]
+            # length = np.linalg.norm(q1 - q0)
             # print("Dubins points, Linear interp points",length/0.005,pts.shape[0])
             sample_num = pts.shape[0]
             for i in range(sample_num):

@@ -162,7 +162,7 @@ class FMT_Star(object):
         # print("num cand",selected_points.shape)
         # print("selected", selected_points)
         # print("distance cart", distance_cart)
-        within_rough = distance_cart < 2*self.r
+        within_rough = distance_cart < self.r
         selected_idx_roughpass = selected_idxs[within_rough]
         selected_points_roughpass = selected_points[within_rough]
         # print("num rough",selected_points_roughpass.shape)
@@ -244,6 +244,7 @@ class FMT_Star(object):
             while id!=-1:
                 waypoints.append(self.points[id,:])
                 id = self.parent[id]
+            waypoints.reverse()
             path = self.get_path(np.array(waypoints))
             return path, np.array(waypoints)
         else:

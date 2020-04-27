@@ -92,6 +92,7 @@ class FMT_Star(object):
         # TODO: Implement the empirical formula derived in paper or radius
         self.r = 0.1
         self.tr_min = self.r / 10
+        self.mode = "linear"
         # np.random.seed(0)
 
     def initialize(self, init, goal, low, high):
@@ -132,15 +133,26 @@ class FMT_Star(object):
         self.cost[0] = 0
 
     def is_seg_valid(self, q0, q1):
-        dist = np.linalg.norm(q0[:2]-q1[:2])
-        tr = np.maximum(self.tr_min,dist * 0.2)
-        pts, cost = get_pts(q0,q1,tr,tr*0.1) #[y,x,theta]
-        sample_num = pts.shape[0]
-        for i in range(sample_num):
-            if self.is_collision(pts[i,:]): # [y,x,theta]
-                print(pts[i,:]*160,'col')
-                return False
-        return True
+        if self.mode=="linear":
+            length = np.linalg.norm(q1 - q0)
+            sample_num = int(length/0.005)
+            qs = np.linspace(q0, q1, sample_num)
+            for _,q in enumerate(qs):
+                if self.is_collision(q):
+                    return False
+            return True
+        else:
+            dist = np.linalg.norm(q0[:2]-q1[:2])
+            tr = np.maximum(self.tr_min,dist * 0.2)
+            pts, cost = get_pts(q0,q1,tr,tr) #[y,x,theta]
+            length = np.linalg.norm(q1 - q0)
+            # print("Dubins points, Linear interp points",length/0.005,pts.shape[0])
+            sample_num = pts.shape[0]
+            for i in range(sample_num):
+                if self.is_collision(pts[i,:]): # [y,x,theta]
+                    # print(pts[i,:]*160,'col')
+                    return False
+            return True
 
     def get_path(self,waypoints):
         path = np.array([[0,0,0]])
@@ -149,60 +161,69 @@ class FMT_Star(object):
             q1 = waypoints[i+1,:]
             distance = np.linalg.norm(q0[:2]-q1[:2])
             tr = np.maximum(self.tr_min,distance * 0.2)
-            pts, _ = get_pts(q0,q1,tr,tr*0.1)
+            pts, _ = get_pts(q0,q1,tr,0.1*tr)
             path = np.concatenate((path,pts))
         return path
 
     def get_neighbors(self, cand_filter, point):
-        selected_idxs = self.idxs[cand_filter]
-        # print("selected",selected_idxs)
-        selected_points = self.points[cand_filter]
-        distance_cart = np.linalg.norm(selected_points[:,:2]-point[:2],axis=1)
-        # print("num cand",selected_points.shape)
-        # print("selected", selected_points)
-        # print("distance cart", distance_cart)
-        within_rough = distance_cart < 2*self.r
-        selected_idx_roughpass = selected_idxs[within_rough]
-        selected_points_roughpass = selected_points[within_rough]
-        # print("num rough",selected_points_roughpass.shape)
-        distance = np.zeros(selected_points_roughpass.shape[0])
-        ## multiprocessing
-        distance_roughpass = np.linalg.norm(selected_points_roughpass[:,:2]-point[:2],axis = 1)
-        tr_temp = distance_roughpass * 0.2
-        tr = np.maximum(tr_temp,self.tr_min)
-        pool = Pool(processes = self.n_cores)
-        infos = np.zeros((selected_points_roughpass.shape[0],5))
-        infos[:,:3] = selected_points_roughpass
-        infos[:,3] = tr
-        infos[:,4] = tr * 0.1
-        distance = pool.map(partial(get_cost_multi,q0=point),infos)
-        pool.close()
-        distance = np.array(distance)
-        ## single_thread
-        # for i in range(selected_points_roughpass.shape[0]):
-        #     pt = selected_points_roughpass[i]
-        #     tr_temp = np.linalg.norm(pt[:2] - point[:2]) * 0.2
-        #     tr = max(tr_temp,tr_min)
-        #     print(tr)
-        #     step_size = tr * 0.05
-        #     pts1, distance[i] = get_pts(point,pt,tr,step_size)
-        #     plt.plot(pts1[:,0],pts1[:,1])
-        #     plt.axis('equal')
-        #     print('one',pts1[0,:],pts1[-1,:])
-        #     plt.show()
-        #     pts2, distance[i] = get_pts(pt,point,tr,step_size)
-        #     plt.plot(pts2[:,0],pts2[:,1])
-        #     plt.axis('equal')
-        #     print('two',pts2[0,:],pts2[-1,:])
-        #     plt.show()
-        within_r = distance < self.r * 5
-        # err('flag')
-        # print(distance_cart,"cart")
-        # print(distance_roughpass)
-        neighbor_idxs = selected_idx_roughpass[within_r]
-        neighbor_distances = distance[within_r]
-        # print("neibor distances",neighbor_distances.shape)
-        return neighbor_idxs, neighbor_distances
+        if self.mode=="linear":
+            selected_idxs = self.idxs[cand_filter]
+            selected_points = self.points[cand_filter]
+            distance = np.linalg.norm(selected_points-point, axis=1)
+            within_r = distance <self.r
+            neighbor_idxs = selected_idxs[within_r]
+            neighbor_distances = distance[within_r]
+            return neighbor_idxs, neighbor_distances
+        else:
+            selected_idxs = self.idxs[cand_filter]
+            # print("selected",selected_idxs)
+            selected_points = self.points[cand_filter]
+            distance_cart = np.linalg.norm(selected_points[:,:2]-point[:2],axis=1)
+            # print("num cand",selected_points.shape)
+            # print("selected", selected_points)
+            # print("distance cart", distance_cart)
+            within_rough = distance_cart < 2*self.r
+            selected_idx_roughpass = selected_idxs[within_rough]
+            selected_points_roughpass = selected_points[within_rough]
+            # print("num rough",selected_points_roughpass.shape)
+            distance = np.zeros(selected_points_roughpass.shape[0])
+            ## multiprocessing
+            distance_roughpass = np.linalg.norm(selected_points_roughpass[:,:2]-point[:2],axis = 1)
+            tr_temp = distance_roughpass * 0.2
+            tr = np.maximum(tr_temp,self.tr_min)
+            pool = Pool(processes = self.n_cores)
+            infos = np.zeros((selected_points_roughpass.shape[0],5))
+            infos[:,:3] = selected_points_roughpass
+            infos[:,3] = tr
+            infos[:,4] = tr * 0.1
+            distance = pool.map(partial(get_cost_multi,q0=point),infos)
+            pool.close()
+            distance = np.array(distance)
+            ## single_thread
+            # for i in range(selected_points_roughpass.shape[0]):
+            #     pt = selected_points_roughpass[i]
+            #     tr_temp = np.linalg.norm(pt[:2] - point[:2]) * 0.2
+            #     tr = max(tr_temp,tr_min)
+            #     print(tr)
+            #     step_size = tr * 0.05
+            #     pts1, distance[i] = get_pts(point,pt,tr,step_size)
+            #     plt.plot(pts1[:,0],pts1[:,1])
+            #     plt.axis('equal')
+            #     print('one',pts1[0,:],pts1[-1,:])
+            #     plt.show()
+            #     pts2, distance[i] = get_pts(pt,point,tr,step_size)
+            #     plt.plot(pts2[:,0],pts2[:,1])
+            #     plt.axis('equal')
+            #     print('two',pts2[0,:],pts2[-1,:])
+            #     plt.show()
+            within_r = distance < self.r * 5
+            # err('flag')
+            # print(distance_cart,"cart")
+            # print(distance_roughpass)
+            neighbor_idxs = selected_idx_roughpass[within_r]
+            neighbor_distances = distance[within_r]
+            # print("neibor distances",neighbor_distances.shape)
+            return neighbor_idxs, neighbor_distances
 
     def extend(self):
         selected_idxs = self.idxs[self.open]
@@ -227,12 +248,30 @@ class FMT_Star(object):
         self.open[cur_id] = False
         self.closed[cur_id] = True
 
+    def add_heading(self,path):
+        new_path = []
+        headings = []
+        for i in range(0,len(path)-1):
+            heading = float(np.arctan2((path[i+1][0]-path[i][0]),(path[i+1][1]-path[i][1])))
+            headings.append(heading)
+        headings.append(headings[-1])
+        avg_headings = []
+        avg_headings.append(headings[0])
+        for i in range(1,len(headings)):
+            avg = (headings[i]+headings[i-1])/2
+            avg_headings.append(avg)
+        # create the waypoints
+        for i in range(0, len(path)):
+            wp = np.array([path[i][0], path[i][1], avg_headings[i]])
+            new_path.append(wp)
+        return np.array(new_path)
+
     def solve(self):
         i=0
         while(True):
             self.extend()
             i+=1
-            if i%100==0:
+            if i%1==0:
                 print(i, np.sum(self.closed))
             # break if final node visited or open list is empty
             if not self.unvisit[-1] or not self.open.any():
@@ -244,8 +283,10 @@ class FMT_Star(object):
             while id!=-1:
                 waypoints.append(self.points[id,:])
                 id = self.parent[id]
-            path = self.get_path(np.array(waypoints))
-            return path, np.array(waypoints)
+            path_with_heading = self.add_heading(waypoints)
+            path = self.get_path(path_with_heading)
+            # add thetas
+            return path, path_with_heading
         else:
             print("Plan Not found")
             return np.array([])

@@ -68,50 +68,73 @@ class Sampler(object):
         gen_samples, _ = self.sess.run([y, z], feed_dict={z: np.random.randn(NUM_SAMPLES, z_dim), c: cond_samples})
         return gen_samples
 
-def generate_data(_map, no_pairs=10, filename="dataset"):
-    checker = CollisionChecker(_map, radius=2)
+def generate_data(_map, no_pairs=10, min_samples=20, filename="dataset"):
+    checker = CollisionChecker(_map, radius=3)
     count = 0
     data = []
     while(count!=no_pairs):
-        start = np.random.random(2)
-        goal = np.random.random(2)
+        start = np.random.random(3)*np.array([1,1,2*np.pi])
+        goal = np.random.random(3)*np.array([1,1,2*np.pi])
         cond_1 = checker.is_in_collision(start)
         cond_2 = checker.is_in_collision(goal)
         if not cond_1 and not cond_2:
-            planner = FMT_Star(2, 2000, None, checker.is_in_collision)
-            planner.initialize(start, goal, low=np.array([0,0]), high=np.array([1,1]))
-            path = planner.solve()
-            print(path)
-            plt.imshow(_map)
+            planner = FMT_Star(3, 2000, None, checker.is_in_collision)
+            planner.initialize(start, goal, np.array([0,0,0]), np.array([1,1,2*np.pi]))
+            
+            # catch any issues
+#             try:
+            path, waypoints = planner.solve()
+#             except Exception as e:
+#                 print('No path for this example')
+#                 continue
+
+            # if path found
             if path.shape[0]!=0:
-                for item in path:
+                for item in waypoints:
                     data.append(item.tolist() + start.tolist()+ goal.tolist())
+                    
+                remaining = min_samples - len(waypoints)
+                while remaining > 0:
+                    rand_wpt = None
+                    remaining -= 1
                 count+=1
+                
     np.savez(filename, data=data)
 
-
 if __name__ == "__main__":
-    # mini_map_file = os.path.join(DIR+"/Training_Data/", 'map{}_mini.npy'.format(MAP_NUM))
-    mini_map_file = "../CVAE/Training_Data/map2_mini.npy"
-    mini_map = np.load(mini_map_file)
-    # map_file = os.path.join(DIR+"/Training_Data/", 'map{}.npy'.format(MAP_NUM))
-    map_file = os.path.join("../CVAE/Training_Data/", 'map{}.npy'.format(MAP_NUM))
-    _map = np.load(map_file)
-    if MAP_NUM==5:
-        _map=1-_map
-    row_size, col_size = _map.shape
-    # initialize the objects
-    checker = CollisionChecker(_map, radius=3)
-    planner = FMT_Star(3, 1000, None, checker.is_in_collision)
-    planner.initialize(np.array([10/160,10/160,0]), np.array([53/160,111/160,0]), np.array([0,0,0]), np.array([1,1,2*np.pi]))
-    # comment this if you dont need to visualise the sampled points
-    # plt.scatter(x=160*planner.points[:,1], y=160*planner.points[:,0], color='red', s=2)
-    # planning the path
-    path,waypoints = planner.solve()
-    if path.shape[0]!=0:
-        plt.figure()
-        plt.imshow(_map)
-        plt.scatter(x=160*path[:,1], y=160*path[:,0], color='red', s=2)
-        plt.scatter(x=160*waypoints[:,1], y=160*waypoints[:,0], color='green', s=10)
-        plt.show()
-        plt.close('all');
+    train_val_maps = [1,3,4,5,6]  # don't train with test maps: [2, 7]
+    for map_num in train_val_maps:
+        map_file = os.path.join("../CVAE/Training_Data/", 'map{}.npy'.format(MAP_NUM))
+        _map = np.load(map_file)
+        output_file = os.path.join("../CVAE/Training_Data/", 'map{}_training'.format(MAP_NUM))
+        generate_data(_map, no_pairs=300, filename=output_file)
+        break
+    print("Done!")
+        
+
+# if __name__ == "__main__":
+#     # mini_map_file = os.path.join(DIR+"/Training_Data/", 'map{}_mini.npy'.format(MAP_NUM))
+#     mini_map_file = "../CVAE/Training_Data/map2_mini.npy"
+#     mini_map = np.load(mini_map_file)
+#     # map_file = os.path.join(DIR+"/Training_Data/", 'map{}.npy'.format(MAP_NUM))
+#     map_file = os.path.join("../CVAE/Training_Data/", 'map{}.npy'.format(MAP_NUM))
+#     _map = np.load(map_file)
+#     if MAP_NUM==5:
+#         _map=1-_map
+#     row_size, col_size = _map.shape
+#     # initialize the objects
+#     checker = CollisionChecker(_map, radius=3)
+#     planner = FMT_Star(3, 2000, None, checker.is_in_collision)
+#     planner.initialize(np.array([10/160,10/160,0]), np.array([140/160,140/160,0]), np.array([0,0,0]), np.array([1,1,2*np.pi]))
+#     # comment this if you dont need to visualise the sampled points
+#     # plt.scatter(x=160*planner.points[:,1], y=160*planner.points[:,0], color='red', s=2)
+#     # planning the path
+#     path,waypoints = planner.solve()
+#     if path.shape[0]!=0:
+#         plt.figure()
+#         plt.imshow(_map)
+#         plt.scatter(x=160*path[:,1], y=160*path[:,0], color='red', s=2)
+#         plt.scatter(x=160*waypoints[:,1], y=160*waypoints[:,0], color='green', s=10)
+#         plt.show()
+#         plt.close('all');
+

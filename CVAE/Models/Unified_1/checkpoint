@@ -1,0 +1,6 @@
+model_checkpoint_path: "final_train_iter_1000001"
+all_model_checkpoint_paths: "final_train_iter_960000"
+all_model_checkpoint_paths: "final_train_iter_970000"
+all_model_checkpoint_paths: "final_train_iter_980000"
+all_model_checkpoint_paths: "final_train_iter_990000"
+all_model_checkpoint_paths: "final_train_iter_1000001"

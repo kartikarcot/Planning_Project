@@ -49,6 +49,8 @@ class Sampler(object):
         # load tensorflow graph
         tf.reset_default_graph()
         self.sess = tf.Session()
+        print("Session is",self.sess)
+        print("Path is",path)
         saver = tf.train.import_meta_graph(path+'/graph.meta')
         saver = tf.train.Saver()
         saver.restore(self.sess, tf.train.latest_checkpoint(path))
@@ -155,25 +157,23 @@ def check_map_validity():
 
 if __name__ == "__main__":
     DIR = "/home/grasp/Planning_Project/CVAE"
-    MODEL_DIR = DIR+"/Models/Unified"
-    # mini_map_file = os.path.join(DIR+"/Training_Data/", 'map{}_mini.npy'.format(MAP_NUM))
-    mini_map_file = "../CVAE/Training_Data/map5_mini.npy"
+    MODEL_DIR = DIR+"/Models/Unified_1"
+    MAP_NUM = 3
+    mini_map_file = "../CVAE/Training_Data/map{}_mini.npy".format(MAP_NUM)
     mini_map = np.load(mini_map_file)
-    # map_file = os.path.join(DIR+"/Training_Data/", 'map{}.npy'.format(MAP_NUM))
-    map_file = os.path.join("../CVAE/Training_Data/", 'map{}.npy'.format(5))
+    map_file = os.path.join("../CVAE/Training_Data/", 'map{}.npy'.format(MAP_NUM))
     _map = np.load(map_file)
     row_size, col_size = _map.shape
     # initialize the objects
     checker = CollisionChecker(_map, radius=3)
     sampler = Sampler(mini_map, row_size, col_size)
     sampler.initialize(MODEL_DIR)
-    planner = FMT_Star(3, 500, sampler.sample, checker.is_in_collision)
+    planner = FMT_Star(3, 1000, sampler.sample, checker.is_in_collision)
     planner.initialize(np.array([10/160,10/160,0]), np.array([30/160,110/160,0]), np.array([0,0,0]), np.array([1,1,2*np.pi]))
     plt.scatter(x=160*planner.points[:,1], y=160*planner.points[:,0], color='red', s=2)
     plt.imshow(_map)
     plt.show()
     path,waypoints = planner.solve()
-    # path,waypoints = planner.postProcess(path,waypoints)
     # comment this if you dont need to visualise the sampled points
     # plt.scatter(x=160*planner.points[:,1], y=160*planner.points[:,0], color='red', s=2)
     # planning the path

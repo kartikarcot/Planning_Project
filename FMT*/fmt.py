@@ -91,7 +91,7 @@ class FMT_Star(object):
         self.idxs = np.arange(0,N,1,dtype=int)
         # TODO: Implement the empirical formula derived in paper or radius
         self.r = 0.1
-        self.tr_min = self.r / 5
+        self.tr_min = self.r / 10
         self.pool = Pool(processes = self.n_cores)
         # np.random.seed(0)
 
@@ -204,10 +204,12 @@ class FMT_Star(object):
                     segment_path = copy.copy(pts)
                     min_cost = cost
             if segment_path == []:
-                if i > 0 and i < range(waypoints.shape[0] - 1):
-                    segment_path = self.get_path(waypoints[[i-1,i+1],:])
-            else:
                 segment_path = copy.copy(pts)
+            # if segment_path == []:
+            #     if i > 0 and i < range(waypoints.shape[0] - 1):
+            #         segment_path = self.get_path(waypoints[[i-1,i+1],:])
+            # else:
+            #     segment_path = copy.copy(pts)
             path = np.concatenate((path,segment_path))
         return path
 
@@ -256,6 +258,8 @@ class FMT_Star(object):
         open_list_costs = self.cost[self.open]
         cur_id = selected_idxs[open_list_costs.argmin()]
         goal = self.points[-1,:]
+        # h_values = np.linalg.norm(goal[:2]-self.points[:,:2],axis=1)
+        # print(h_values.shape)
         # get neighbors in open list
         cur_unvisit_nbr_idxs, _ = self.get_neighbors(self.unvisit, self.points[cur_id])
         for unv_nbr_idx in cur_unvisit_nbr_idxs:
@@ -263,10 +267,12 @@ class FMT_Star(object):
             open_nbr_idxs, open_cost = self.get_neighbors(self.open, self.points[unv_nbr_idx,:])
             net_cost = self.cost[open_nbr_idxs]+open_cost
             # select the id of the point with minimum cost
+            # min_cost = np.amin(net_cost+h_values[open_nbr_idxs])
             min_cost = np.amin(net_cost)
+            # min_cost_idx = open_nbr_idxs[np.argmin(net_cost+h_values[open_nbr_idxs])]
             min_cost_idx = open_nbr_idxs[np.argmin(net_cost)]
             min_cost_point = self.points[min_cost_idx,:]
-            min_cost += np.linalg.norm(min_cost_point[:2]-goal[:2])
+            # min_cost += np.linalg.norm(min_cost_point[:2]-goal[:2])
             if self.is_seg_valid(min_cost_point, self.points[unv_nbr_idx]):
                 # print("one Point found")
                 self.unvisit[unv_nbr_idx] = False

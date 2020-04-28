@@ -18,23 +18,26 @@ def save_to_text(img, filename):
         f.write(text)
 
 
-map_num = 1
-# store original size image as text for training
-im = cv2.imread("Maps/map%d_png_version.png" % map_num)
-im = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
-im = (im / np.max(im)).astype('uint8')
-im = 1 - im
-cv2.imshow('im', im *  255)
-cv2.waitKey(0)
-save_to_text(im, "Maps/map%d_orig.txt" % map_num)
+for map_num in range(1, 7+1):
+    # store original size image as text for training
+    im = cv2.imread("Maps/map%d_png_version.png" % map_num)
+    im = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
+    im = (im / np.max(im)).astype('uint8')
+    im = 1 - im
+    # cv2.imshow('im', im *  255)
+    # cv2.waitKey(0)
+    plt.imshow(im)
+    plt.show()
+    save_to_text(im, "Maps/map%d_orig.txt" % map_num)
+    np.save("Maps/map%d" % map_num, im)
 
-# Store mini version 
-im = cv2.imread("Maps/map%d_mini_version.png" % map_num)
-im = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
-im = (im / np.max(im)).astype('uint8')
-im = 1 - im
-cv2.imshow('im', im *  255)
-cv2.waitKey(0)
-np.save("Maps/map%d_mini" % map_num, im)
+    # Store mini version 
+    im = cv2.imread("Maps/map%d_mini_version.png" % map_num)
+    im = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
+    im = (im / np.max(im)).astype('uint8')
+    im = 1 - im
+    cv2.imshow('im', im *  255)
+    cv2.waitKey(0)
+    np.save("Maps/map%d_mini" % map_num, im)
 
 

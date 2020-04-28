@@ -133,7 +133,7 @@ def check_map_validity():
     samples_data = np.array(np.load(samples_file)['data'])
     print(samples_data.shape[0])
     path = samples_data[:20, :2]
-    # [sx, sy, st, ix, iy, iz, gx, gy, gt]
+    # [sy, sx, st, iy, ix, iz, gy, gx, gt]
     init, goal = samples_data[0, 3:5], samples_data[0, 6:8]
     plt.figure()
     plt.imshow(map)
@@ -150,7 +150,7 @@ if __name__ == "__main__":
         map_file = os.path.join("../CVAE/Training_Data/", 'map{}.npy'.format(map_num))
         _map = np.load(map_file)
         output_file = os.path.join("../CVAE/Training_Data/", 'map{}_training'.format(map_num))
-        generate_data(_map, no_pairs=300, filename=output_file, map_num=map_num, viz=False)
+        generate_data(_map, no_pairs=150, filename=output_file, map_num=map_num, viz=False)
     print("Done!")
 
 

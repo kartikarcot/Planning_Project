@@ -83,18 +83,25 @@ def generate_data(_map, map_num, no_pairs=10, min_samples=20,
             planner = FMT_Star(3, 1000, None, checker.is_in_collision)
             planner.initialize(start, goal, np.array([0,0,0]), np.array([1,1,2*np.pi]))
             
-            path, waypoints = planner.solve()
+            try:
+                path, waypoints = planner.solve()
+            except:
+                print("Couldn't get path, skipping...")
+                continue
 
             # if path found
             if path.shape[0]!=0:
                 count+=1
                 print("%d Plans left for Map %d" % (count, map_num))
                 for item in waypoints:
-                    data.append(item.tolist() + start.tolist()+ goal.tolist())
+                    data.append(item.tolist() + start.tolist() + goal.tolist())
                     
                 remaining = min_samples - len(waypoints)
+                N = path.shape[0]
                 while remaining > 0:
-                    rand_wpt = None
+                    rand_i = np.random.randint(low=1, high=N)
+                    data.append(path[rand_i,:].tolist() + 
+                        start.tolist() + goal.tolist())
                     remaining -= 1
 
                 if viz:
@@ -127,8 +134,6 @@ if __name__ == "__main__":
 #     # map_file = os.path.join(DIR+"/Training_Data/", 'map{}.npy'.format(MAP_NUM))
 #     map_file = os.path.join("../CVAE/Training_Data/", 'map{}.npy'.format(MAP_NUM))
 #     _map = np.load(map_file)
-#     if MAP_NUM==5:
-#         _map=1-_map
 #     row_size, col_size = _map.shape
 #     # initialize the objects
 #     checker = CollisionChecker(_map, radius=3)

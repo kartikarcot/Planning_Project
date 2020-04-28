@@ -23,6 +23,7 @@ DIR = "./CVAE"
 
 # MODEL_DIR = DIR+"/Models/0"+str(MAP_NUM)
 
+
 class CollisionChecker(object):
     def __init__(self, _map, radius=2):
         self.radius = radius
@@ -144,7 +145,7 @@ def check_map_validity():
     samples_data = np.array(np.load(samples_file)['data'])
     print(samples_data.shape[0])
     path = samples_data[:20, :2]
-    # [sx, sy, st, ix, iy, iz, gx, gy, gt]
+    # [sy, sx, st, iy, ix, iz, gy, gx, gt]
     init, goal = samples_data[0, 3:5], samples_data[0, 6:8]
     plt.figure()
     plt.imshow(map)
@@ -154,38 +155,45 @@ def check_map_validity():
     plt.show()
     plt.close('all')
 
+# if __name__ == "__main__":
+#     train_val_maps = [1]  # don't train with test maps: [2, 7]
+#     for map_num in train_val_maps:
+#         map_file = os.path.join("../CVAE/Training_Data/", 'map{}.npy'.format(map_num))
+#         _map = np.load(map_file)
+#         output_file = os.path.join("../CVAE/Training_Data/", 'map{}_training'.format(map_num))
+#         generate_data(_map, no_pairs=150, min_samples=40, filename=output_file, map_num=map_num, viz=False)
+#     print("Done!")
+
 
 if __name__ == "__main__":
-    train_val_maps = [1]  # don't train with test maps: [2, 7]
-    for map_num in train_val_maps:
-        map_file = os.path.join(DIR + "/Training_Data/", 'map{}.npy'.format(map_num))
-        _map = np.load(map_file)
-        output_file = os.path.join(DIR + "/outputs/", 'map{}_training'.format(map_num))
-        generate_data(_map, no_pairs=300, filename=output_file, map_num=map_num, viz=False)
-    print("Done!")
-
-# if __name__ == "__main__":
-#     # mini_map_file = os.path.join(DIR+"/Training_Data/", 'map{}_mini.npy'.format(MAP_NUM))
-#     mini_map_file = "../CVAE/Training_Data/map2_mini.npy"
-#     mini_map = np.load(mini_map_file)
-#     # map_file = os.path.join(DIR+"/Training_Data/", 'map{}.npy'.format(MAP_NUM))
-#     map_file = os.path.join("../CVAE/Training_Data/", 'map{}.npy'.format(MAP_NUM))
-#     _map = np.load(map_file)
-#     if MAP_NUM==5:
-#         _map=1-_map
-#     row_size, col_size = _map.shape
-#     # initialize the objects
-#     checker = CollisionChecker(_map, radius=3)
-#     planner = FMT_Star(3, 2000, None, checker.is_in_collision)
-#     planner.initialize(np.array([10/160,10/160,0]), np.array([140/160,140/160,0]), np.array([0,0,0]), np.array([1,1,2*np.pi]))
-#     # comment this if you dont need to visualise the sampled points
-#     # plt.scatter(x=160*planner.points[:,1], y=160*planner.points[:,0], color='red', s=2)
-#     # planning the path
-#     path,waypoints = planner.solve()
-#     if path.shape[0]!=0:
-#         plt.figure()
-#         plt.imshow(_map)
-#         plt.scatter(x=160*path[:,1], y=160*path[:,0], color='red', s=2)
-#         plt.scatter(x=160*waypoints[:,1], y=160*waypoints[:,0], color='green', s=10)
-#         plt.show()
-#         plt.close('all');
+    DIR = "/home/grasp/Planning_Project/CVAE"
+    MODEL_DIR = DIR+"/Models/Unified"
+    # mini_map_file = os.path.join(DIR+"/Training_Data/", 'map{}_mini.npy'.format(MAP_NUM))
+    mini_map_file = "../CVAE/Training_Data/map5_mini.npy"
+    mini_map = np.load(mini_map_file)
+    # map_file = os.path.join(DIR+"/Training_Data/", 'map{}.npy'.format(MAP_NUM))
+    map_file = os.path.join("../CVAE/Training_Data/", 'map{}.npy'.format(5))
+    _map = np.load(map_file)
+    row_size, col_size = _map.shape
+    # initialize the objects
+    checker = CollisionChecker(_map, radius=3)
+    sampler = Sampler(mini_map, row_size, col_size)
+    sampler.initialize(MODEL_DIR)
+    planner = FMT_Star(3, 500, sampler.sample, checker.is_in_collision)
+    planner.initialize(np.array([10/160,10/160,0]), np.array([30/160,110/160,0]), np.array([0,0,0]), np.array([1,1,2*np.pi]))
+    plt.scatter(x=160*planner.points[:,1], y=160*planner.points[:,0], color='red', s=2)
+    plt.imshow(_map)
+    plt.show()
+    path,waypoints = planner.solve()
+    # path,waypoints = planner.postProcess(path,waypoints)
+    # comment this if you dont need to visualise the sampled points
+    # plt.scatter(x=160*planner.points[:,1], y=160*planner.points[:,0], color='red', s=2)
+    # planning the path
+    # path,waypoints = planner.solve()
+    if path.shape[0]!=0:
+        plt.figure()
+        plt.imshow(_map)
+        plt.scatter(x=160*path[:,1], y=160*path[:,0], color='red', s=2)
+        plt.scatter(x=160*waypoints[:,1], y=160*waypoints[:,0], color='green', s=10)
+        plt.show()
+        plt.close('all');

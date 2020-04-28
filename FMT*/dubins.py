@@ -353,6 +353,9 @@ def get_cost_multi(info,q0):
 	path2 = DubinsPath()
 	dubins_shortest_path(path2,q1,q0,turning_radius)
 	pts2,cost2 = dubins_path_sample_many(path2,step_size)
+	end_1, end_2 = np.sum(abs(pts1[-1,:2]-q0[:2])),np.sum(abs(pts2[-1,:2]-q0[:2]))
+	if(min(end_1,end_2) > 0.01):
+		return 1e5
 	if(np.sum(abs(pts2[-1,:2]-q0[:2])) > np.sum(abs(pts1[-1,:2] - q0[:2]))):
 		pts, cost = pts1, cost1
 	else:

@@ -123,16 +123,6 @@ def generate_data(_map, map_num, no_pairs=10, min_samples=20,
 
     np.savez(filename, data=data)
 
-<<<<<<< HEAD
-if __name__ == "__main__":
-    train_val_maps = [6]  # don't train with test maps: [2, 7]
-    for map_num in train_val_maps:
-        map_file = os.path.join("../CVAE/Training_Data/", 'map{}.npy'.format(map_num))
-        _map = np.load(map_file)
-        output_file = os.path.join("../CVAE/Training_Data/", 'map{}_training'.format(map_num))
-        generate_data(_map, no_pairs=300, filename=output_file, map_num=map_num, viz=False)
-    print("Done!")
-=======
 
 def check_map_validity():
     map_num = 5
@@ -153,7 +143,6 @@ def check_map_validity():
     plt.scatter(x=W*goal[1], y=H*goal[0], color='green', s=10)
     plt.show()
     plt.close('all')
->>>>>>> c835a09ea429325c9b3aa546d1b9147f64e2522f
 
 
 # if __name__ == "__main__":

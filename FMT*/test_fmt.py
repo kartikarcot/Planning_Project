@@ -133,7 +133,7 @@ def check_map_validity():
     samples_data = np.array(np.load(samples_file)['data'])
     print(samples_data.shape[0])
     path = samples_data[:20, :2]
-    # [sx, sy, st, ix, iy, iz, gx, gy, gt]
+    # [sy, sx, st, iy, ix, iz, gy, gx, gt]
     init, goal = samples_data[0, 3:5], samples_data[0, 6:8]
     plt.figure()
     plt.imshow(map)

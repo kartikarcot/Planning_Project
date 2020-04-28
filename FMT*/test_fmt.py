@@ -68,8 +68,8 @@ class Sampler(object):
         gen_samples, _ = self.sess.run([y, z], feed_dict={z: np.random.randn(NUM_SAMPLES, z_dim), c: cond_samples})
         return gen_samples
 
-def generate_data(_map, map_num, no_pairs=10, min_samples=20, 
-        filename="dataset", viz=False):
+def generate_data(_map, map_num, no_pairs=10, min_samples=20,
+        filename="dataset", viz=True):
     H, W = _map.shape
     checker = CollisionChecker(_map, radius=3)
     count = 0
@@ -80,28 +80,31 @@ def generate_data(_map, map_num, no_pairs=10, min_samples=20,
         cond_1 = checker.is_in_collision(start)
         cond_2 = checker.is_in_collision(goal)
         if not cond_1 and not cond_2:
-            planner = FMT_Star(3, 1000, None, checker.is_in_collision)
-            planner.initialize(start, goal, np.array([0,0,0]), np.array([1,1,2*np.pi]))
-            
-            try:
-                path, waypoints = planner.solve()
-            except:
-                print("Couldn't get path, skipping...")
-                continue
-
+            # try:
+            checker = CollisionChecker(_map, radius=3)
+            planner_linear = FMT_Star(3, 10000, None, checker.is_in_collision)
+            planner_linear.initialize(start, goal, np.array([0,0,0]), np.array([1,1,2*np.pi]))
+            path_lin, waypoints_lin = planner_linear.solve_linear()
+            # plt.figure()
+            # plt.imshow(_map)
+            # plt.scatter(x=160*path_lin[:,1], y=160*path_lin[:,0], color='red', s=2)
+            # plt.scatter(x=160*waypoints_lin[:,1], y=160*waypoints_lin[:,0], color='green', s=10)
+            # plt.show()
+            planner = FMT_Star(3, waypoints_lin.shape[0]*15, None, checker.is_in_collision)
+            planner.initialize_second_pass(start, goal, np.array([0,0,0]), np.array([1,1,2*np.pi]),waypoints_lin)
+            path,waypoints = planner.solve()
+            path,waypoints = planner.postProcess(path,waypoints)
+            print('itr:',count)
             # if path found
             if path.shape[0]!=0:
                 count+=1
                 print("%d Plans left for Map %d" % (count, map_num))
                 for item in waypoints:
-                    data.append(item.tolist() + start.tolist() + goal.tolist())
-                    
+                    data.append(item.tolist() + start.tolist()+ goal.tolist())
+
                 remaining = min_samples - len(waypoints)
-                N = path.shape[0]
                 while remaining > 0:
-                    rand_i = np.random.randint(low=1, high=N)
-                    data.append(path[rand_i,:].tolist() + 
-                        start.tolist() + goal.tolist())
+                    rand_wpt = None
                     remaining -= 1
 
                 if viz:
@@ -111,9 +114,10 @@ def generate_data(_map, map_num, no_pairs=10, min_samples=20,
                     plt.scatter(x=W*waypoints[:,1], y=H*waypoints[:,0], color='green', s=10)
                     plt.show()
                     plt.close('all')
+            # except:
+            #     print('error')
+            #     pass
 
-                
-                
     np.savez(filename, data=data)
 
 if __name__ == "__main__":
@@ -125,7 +129,7 @@ if __name__ == "__main__":
         generate_data(_map, no_pairs=300, filename=output_file, map_num=map_num)
 
     print("Done!")
-        
+
 
 # if __name__ == "__main__":
 #     # mini_map_file = os.path.join(DIR+"/Training_Data/", 'map{}_mini.npy'.format(MAP_NUM))
@@ -134,6 +138,8 @@ if __name__ == "__main__":
 #     # map_file = os.path.join(DIR+"/Training_Data/", 'map{}.npy'.format(MAP_NUM))
 #     map_file = os.path.join("../CVAE/Training_Data/", 'map{}.npy'.format(MAP_NUM))
 #     _map = np.load(map_file)
+#     if MAP_NUM==5:
+#         _map=1-_map
 #     row_size, col_size = _map.shape
 #     # initialize the objects
 #     checker = CollisionChecker(_map, radius=3)
@@ -150,4 +156,3 @@ if __name__ == "__main__":
 #         plt.scatter(x=160*waypoints[:,1], y=160*waypoints[:,0], color='green', s=10)
 #         plt.show()
 #         plt.close('all');
-

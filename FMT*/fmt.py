@@ -340,7 +340,7 @@ class FMT_Star(object):
             return path, waypoints
         else:
             print("Plan Not found")
-            return np.array([])
+            return np.array([]),np.array([])
 
     def solve(self):
         i=0

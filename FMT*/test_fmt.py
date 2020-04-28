@@ -134,8 +134,6 @@ if __name__ == "__main__":
 #     # map_file = os.path.join(DIR+"/Training_Data/", 'map{}.npy'.format(MAP_NUM))
 #     map_file = os.path.join("../CVAE/Training_Data/", 'map{}.npy'.format(MAP_NUM))
 #     _map = np.load(map_file)
-#     if MAP_NUM==5:
-#         _map=1-_map
 #     row_size, col_size = _map.shape
 #     # initialize the objects
 #     checker = CollisionChecker(_map, radius=3)

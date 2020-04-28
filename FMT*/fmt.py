@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import multiprocessing
 from multiprocessing import Pool
 from functools import partial
+import copy
 
 MAX = 1e5
 
@@ -164,28 +165,16 @@ class FMT_Star(object):
         tr = np.maximum(self.tr_min,dist * 0.2)
         pts, cost = get_pts(q0,q1,tr,tr*0.1) #[y,x,theta]
         sample_num = pts.shape[0]
-        for i in range(sample_num):
-            if self.is_collision(pts[i,:]): # [y,x,theta]
-                # print(pts[i,:]*160,'col')
-                return False
-        return True
+        return not any([self.is_collision(pts[i,:]) for i in range(sample_num)])
 
     def is_seg_valid_tr(self, pts):
         sample_num = pts.shape[0]
-        for i in range(sample_num):
-            if self.is_collision(pts[i,:]): # [y,x,theta]
-                # print(pts[i,:]*160,'col')
-                return False
-        return True
+        return not any([self.is_collision(pts[i,:]) for i in range(sample_num)])
 
     def is_seg_valid_linear(self, q0, q1):
         length = np.linalg.norm(q1 - q0)
         sample_num = int(length/0.005)
-        qs = np.linspace(q0, q1, sample_num)
-        for _,q in enumerate(qs):
-            if self.is_collision(q):
-                return False
-        return True
+        return not any([self.is_collision(q) for q in np.linspace(q0, q1, sample_num)])
 
     def get_path(self,waypoints):
         path = np.array([[0,0,0]])
@@ -246,7 +235,7 @@ class FMT_Star(object):
         infos[:,:3] = selected_points_roughpass
         infos[:,3] = tr
         infos[:,4] = tr * 0.1
-        distance = self.pool.map(partial(get_cost_multi,q0=point),infos)
+        distance = self.pool.map(partial(get_cost_multi,q0=point),infos, chunksize=10)
         distance = np.array(distance)
         within_r = distance < self.r * 5
         neighbor_idxs = selected_idx_roughpass[within_r]

@@ -152,7 +152,7 @@ class FMT_Star(object):
             tr = np.maximum(self.tr_min,distance * 0.2)
             pts, _ = get_pts(q0,q1,tr,tr*0.1)
             path = np.concatenate((path,pts))
-            print(path.shape)
+            # print(path.shape)
         return path
 
     def get_neighbors(self, cand_filter, point):
@@ -232,8 +232,8 @@ class FMT_Star(object):
         while(True):
             self.extend()
             i+=1
-            if i%10==0:
-                print(i, np.sum(self.closed))
+            # if i%10==0:
+            #     print(i, np.sum(self.closed))
             # break if final node visited or open list is empty
             if not self.unvisit[-1] or not self.open.any():
                 break

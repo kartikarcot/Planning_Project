@@ -68,7 +68,9 @@ class Sampler(object):
         gen_samples, _ = self.sess.run([y, z], feed_dict={z: np.random.randn(NUM_SAMPLES, z_dim), c: cond_samples})
         return gen_samples
 
-def generate_data(_map, no_pairs=10, min_samples=20, filename="dataset"):
+def generate_data(_map, map_num, no_pairs=10, min_samples=20, 
+        filename="dataset", viz=False):
+    H, W = _map.shape
     checker = CollisionChecker(_map, radius=3)
     count = 0
     data = []
@@ -78,18 +80,15 @@ def generate_data(_map, no_pairs=10, min_samples=20, filename="dataset"):
         cond_1 = checker.is_in_collision(start)
         cond_2 = checker.is_in_collision(goal)
         if not cond_1 and not cond_2:
-            planner = FMT_Star(3, 2000, None, checker.is_in_collision)
+            planner = FMT_Star(3, 1000, None, checker.is_in_collision)
             planner.initialize(start, goal, np.array([0,0,0]), np.array([1,1,2*np.pi]))
             
-            # catch any issues
-#             try:
             path, waypoints = planner.solve()
-#             except Exception as e:
-#                 print('No path for this example')
-#                 continue
 
             # if path found
             if path.shape[0]!=0:
+                count+=1
+                print("%d Plans left for Map %d" % (count, map_num))
                 for item in waypoints:
                     data.append(item.tolist() + start.tolist()+ goal.tolist())
                     
@@ -97,7 +96,16 @@ def generate_data(_map, no_pairs=10, min_samples=20, filename="dataset"):
                 while remaining > 0:
                     rand_wpt = None
                     remaining -= 1
-                count+=1
+
+                if viz:
+                    plt.figure()
+                    plt.imshow(_map)
+                    plt.scatter(x=W*path[:,1], y=H*path[:,0], color='red', s=2)
+                    plt.scatter(x=W*waypoints[:,1], y=H*waypoints[:,0], color='green', s=10)
+                    plt.show()
+                    plt.close('all')
+
+                
                 
     np.savez(filename, data=data)
 
@@ -107,8 +115,8 @@ if __name__ == "__main__":
         map_file = os.path.join("../CVAE/Training_Data/", 'map{}.npy'.format(MAP_NUM))
         _map = np.load(map_file)
         output_file = os.path.join("../CVAE/Training_Data/", 'map{}_training'.format(MAP_NUM))
-        generate_data(_map, no_pairs=300, filename=output_file)
-        break
+        generate_data(_map, no_pairs=300, filename=output_file, map_num=map_num)
+
     print("Done!")
         
 

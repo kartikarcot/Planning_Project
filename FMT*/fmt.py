@@ -136,6 +136,10 @@ class FMT_Star(object):
                 generated_points = self.sampler(self.N, init.tolist(), goal.tolist())
                 for i in range(self.N):
                     point = generated_points[j,:]
+                    point[0] = max(0,point[0])
+                    point[0] = min(1,point[0])
+                    point[1] = max(0,point[1])
+                    point[1] = min(1,point[1])
                     if not self.is_collision(point):
                         self.points[j,:] = point
                         j+=1

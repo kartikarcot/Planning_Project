@@ -120,7 +120,7 @@ def generate_data(_map, map_num, no_pairs=10, min_samples=20,
     np.savez(filename, data=data)
 
 if __name__ == "__main__":
-    train_val_maps = [4]  # don't train with test maps: [2, 7]
+    train_val_maps = [6]  # don't train with test maps: [2, 7]
     for map_num in train_val_maps:
         map_file = os.path.join("../CVAE/Training_Data/", 'map{}.npy'.format(map_num))
         _map = np.load(map_file)

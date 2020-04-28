@@ -1,0 +1,6 @@
+model_checkpoint_path: "model_for_map_iter490000"
+all_model_checkpoint_paths: "model_for_map_iter450000"
+all_model_checkpoint_paths: "model_for_map_iter460000"
+all_model_checkpoint_paths: "model_for_map_iter470000"
+all_model_checkpoint_paths: "model_for_map_iter480000"
+all_model_checkpoint_paths: "model_for_map_iter490000"

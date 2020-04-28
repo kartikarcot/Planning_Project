@@ -102,8 +102,11 @@ def generate_data(_map, map_num, no_pairs=10, min_samples=20,
                         data.append(item.tolist() + start.tolist()+ goal.tolist())
 
                     remaining = min_samples - len(waypoints)
+                    N = path.shape[0]
                     while remaining > 0:
-                        rand_wpt = None
+                        rand_i = np.random.randint(low=1, high=N)
+                        data.append(path[rand_i,:].tolist() + 
+                            start.tolist() + goal.tolist())
                         remaining -= 1
 
                     if viz:
@@ -118,6 +121,28 @@ def generate_data(_map, map_num, no_pairs=10, min_samples=20,
                 pass
 
     np.savez(filename, data=data)
+
+
+def check_map_validity():
+    map_num = 5
+    H, W = 160, 160
+    map_file = os.path.join("../CVAE/Training_Data/", 'map{}.npy'.format(map_num))
+    samples_file = os.path.join("../CVAE/Training_Data/", 'map{}_training.npz'.format(map_num))
+
+    map = np.load(map_file)
+    samples_data = np.array(np.load(samples_file)['data'])
+    print(samples_data.shape[0])
+    path = samples_data[:20, :2]
+    # [sx, sy, st, ix, iy, iz, gx, gy, gt]
+    init, goal = samples_data[0, 3:5], samples_data[0, 6:8]
+    plt.figure()
+    plt.imshow(map)
+    plt.scatter(x=W*path[:,1], y=H*path[:,0], color='red', s=2)
+    plt.scatter(x=W*init[1], y=H*init[0], color='green', s=10)
+    plt.scatter(x=W*goal[1], y=H*goal[0], color='green', s=10)
+    plt.show()
+    plt.close('all')
+
 
 if __name__ == "__main__":
     train_val_maps = [4]  # don't train with test maps: [2, 7]

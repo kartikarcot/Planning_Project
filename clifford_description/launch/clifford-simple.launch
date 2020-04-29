@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+
+<launch>
+    <arg name="namespace" default="ackermann_vehicle"/>
+    <arg name="gpu_laser" default="false" />
+
+    <!-- robot_description is used by nodes that publish to joint_states. -->
+
+    <group unless="$(arg gpu_laser)">
+        <param name="robot_description"
+               command="$(find xacro)/xacro.py $(find clifford_description)/urdf/clifford-simple.urdf.xacro namespace:=$(arg namespace) sensor_type:=ray gazebo_sensor_type:=libgazebo_ros_laser.so"/>
+    </group>
+
+    <group if="$(arg gpu_laser)">
+        <param name="robot_description"
+               command="$(find xacro)/xacro.py $(find clifford_description)/urdf/clifford-simple.urdf.xacro namespace:=$(arg namespace) sensor_type:=gpu_ray gazebo_sensor_type:=libgazebo_ros_gpu_laser.so"/>
+    </group>
+
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" />
+
+    <node pkg="clifford_description" type="imu2tf.py" name="imu_tf_publisher">
+        <remap from="imu/data" to="/imu/data"/>
+    </node>
+
+</launch>

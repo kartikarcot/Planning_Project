@@ -1,0 +1,5 @@
+#!/usr/bin/env python
+from map import map_service
+
+if __name__ == "__main__":
+    map_service.main()

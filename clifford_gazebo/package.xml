@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>clifford_gazebo</name>
+  <version>0.0.0</version>
+  <description>
+    clifford_gazebo is used with Gazebo to simulate a vehicle with dual
+    Ackermann steering.
+  </description>
+
+  <maintainer email="tscherli@andrew.cmu.edu">
+    Tom Scherlis
+  </maintainer>
+  <license>Apache 2.0</license>
+
+  <author email="tscherli@andrew.cmu.edu">Tom Scherlis</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>clifford_description</depend>
+  <depend>controller_manager</depend>
+  <depend>joint_state_controller</depend>
+  <depend>position_controllers</depend>
+  <depend>effort_controllers</depend>
+  <depend>gazebo_ros</depend>
+  <depend>gazebo_ros_control</depend>
+  <depend>rospy</depend>
+  <depend>std_msgs</depend>
+  <depend>tf</depend>
+  <depend>xacro</depend>
+  <depend>clifford_msgs</depend>
+
+  <export>
+    <architecture_independent/>
+    <rosdoc config="rosdoc.yaml"/>
+    <gazebo_ros gazebo_model_path="${prefix}/models"/>
+    <gazebo_ros gazebo_media_path="${prefix}/worlds"/>
+  </export>
+</package>

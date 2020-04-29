@@ -1,0 +1,7 @@
+<launch>
+    <node pkg="car_planner" type="map_service" name="map_service" output="screen">
+        <param name="map_directory" value="$(find car_planner)/maps/map5" />
+    </node>
+<!--    <node pkg="car_planner" type="path_planner" name="path_planner" output="screen"/>-->
+    <node pkg="tf" type="static_transform_publisher" name="world_map_linker" args="0 0 0 0 0 0 map world 100" />
+</launch>

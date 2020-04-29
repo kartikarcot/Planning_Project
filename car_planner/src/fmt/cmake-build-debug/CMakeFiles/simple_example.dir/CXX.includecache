@@ -1,0 +1,14 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/tom/workspaces/rrtplan_ws/src/kinodynamic_rrt_planner/car_planner/src/fmt/fmt.h
+
+/home/tom/workspaces/rrtplan_ws/src/kinodynamic_rrt_planner/car_planner/src/fmt/test/test.cpp
+../fmt.h
+/home/tom/workspaces/rrtplan_ws/src/kinodynamic_rrt_planner/car_planner/src/fmt/fmt.h
+

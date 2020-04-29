@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>clifford_description</name>
+  <version>0.0.0</version>
+  <description>The clifford_description package</description>
+
+  <maintainer email="tom@todo.todo">tom</maintainer>
+
+  <license>TODO</license>
+
+  <depend>joint_state_publisher</depend>
+  <depend>robot_state_publisher</depend>
+  <depend>rviz</depend>
+  <depend>xacro</depend>
+  <buildtool_depend>catkin</buildtool_depend>
+
+
+  <export>
+  </export>
+</package>

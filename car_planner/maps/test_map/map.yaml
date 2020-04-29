@@ -1,0 +1,6 @@
+image: map.png
+resolution: 0.1
+origin: [0.0, 0.0, 0.0]
+thresh: 0.8
+negate: 0
+frame: world

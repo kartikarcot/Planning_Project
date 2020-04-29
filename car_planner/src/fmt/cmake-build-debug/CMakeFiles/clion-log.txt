@@ -1,0 +1,7 @@
+/opt/clion-2019.2.5/bin/cmake/linux/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" /home/tom/workspaces/rrtplan_ws/src/kinodynamic_rrt_planner/car_planner/src/fmt
+-- Configuring done
+CMake Error at CMakeLists.txt:9 (add_library):
+  No SOURCES given to target: KDTree
+
+
+CMake Generate step failed.  Build files cannot be regenerated correctly.

@@ -1,0 +1,6 @@
+image: map5_png_version.png
+resolution: 0.1
+origin: [0.0, 0.0, 0.0]
+thresh: 0.5
+negate: 0
+frame: world

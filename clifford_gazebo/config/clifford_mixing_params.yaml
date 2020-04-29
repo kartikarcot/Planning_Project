@@ -1,0 +1,17 @@
+front_steering_controls:
+  - topic: front_left_steering_ctrlr/command
+    scaling: 1.0
+  - topic: front_right_steering_ctrlr/command
+    scaling: 1.0
+
+rear_steering_controls:
+  - topic: rear_left_steering_ctrlr/command
+    scaling: 1.0
+  - topic: rear_right_steering_ctrlr/command
+    scaling: 1.0
+
+motor_speed_controls:
+  - topic: front_left_axle_ctrlr/command
+  - topic: front_right_axle_ctrlr/command
+  - topic: rear_left_axle_ctrlr/command
+  - topic: rear_right_axle_ctrlr/command

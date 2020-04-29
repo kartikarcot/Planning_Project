@@ -92,13 +92,14 @@ class FMT_Star(object):
         # TODO: Implement the empirical formula derived in paper or radius
         self.r = 0.1
         self.tr_min = self.r / 10
+        self.tr_max = self.r / 2
         self.pool = Pool(processes = self.n_cores)
         # np.random.seed(0)
 
     def initialize_second_pass(self,init,goal,low,high,cands):
         cand_clones_num = 10
         num_cands = cands.shape[0] * cand_clones_num
-        print(cands.shape,num_cands*cand_clones_num)
+        # print(cands.shape,num_cands*cand_clones_num)
 
         for i in range(self.N):
             point = None
@@ -124,14 +125,14 @@ class FMT_Star(object):
 
     def initialize(self, init, goal, low, high):
         if self.sampler is not None:
-            for i in range(self.N//5):
+            for i in range(self.N//2):
                 point = None
                 while True:
                     point = np.random.random(self.num_dof) * (high - low) + low
                     if not self.is_collision(point):
                         break
                 self.points[i,:] = point
-            j = self.N//5
+            j = self.N//2
             while(True):
                 generated_points = self.sampler(self.N, init.tolist(), goal.tolist())
                 for i in range(self.N):
@@ -201,6 +202,7 @@ class FMT_Star(object):
             segment_path = []
             for j in range(10):
                 tr = np.maximum(self.tr_min,distance * 0.2 * j)
+                tr = np.minimum(self.tr_max,tr)
                 pts, cost = get_pts(q0,q1,tr,tr*0.02)
                 # if segment_path == []:
                     # segment_path = copy.copy(pts)

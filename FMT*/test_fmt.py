@@ -106,7 +106,7 @@ def generate_data(_map, map_num, no_pairs=10, min_samples=20,
                     N = path.shape[0]
                     while remaining > 0:
                         rand_i = np.random.randint(low=1, high=N)
-                        data.append(path[rand_i,:].tolist() + 
+                        data.append(path[rand_i,:].tolist() +
                             start.tolist() + goal.tolist())
                         remaining -= 1
 
@@ -156,7 +156,7 @@ def check_map_validity():
 
 
 if __name__ == "__main__":
-    DIR = "/home/grasp/Planning_Project/CVAE"
+    DIR = "../CVAE"
     MODEL_DIR = DIR+"/Models/Unified_1"
     MAP_NUM = 3
     mini_map_file = "../CVAE/Training_Data/map{}_mini.npy".format(MAP_NUM)
@@ -168,12 +168,23 @@ if __name__ == "__main__":
     checker = CollisionChecker(_map, radius=3)
     sampler = Sampler(mini_map, row_size, col_size)
     sampler.initialize(MODEL_DIR)
-    planner = FMT_Star(3, 1000, sampler.sample, checker.is_in_collision)
+    planner = FMT_Star(3, 500, sampler.sample, checker.is_in_collision)
     planner.initialize(np.array([10/160,10/160,0]), np.array([30/160,110/160,0]), np.array([0,0,0]), np.array([1,1,2*np.pi]))
     plt.scatter(x=160*planner.points[:,1], y=160*planner.points[:,0], color='red', s=2)
     plt.imshow(_map)
     plt.show()
     path,waypoints = planner.solve()
+    plt.figure()
+    plt.imshow(_map)
+    plt.scatter(x=160*path[:,1], y=160*path[:,0], color='red', s=2)
+    plt.scatter(x=160*waypoints[:,1], y=160*waypoints[:,0], color='green', s=10)
+    plt.show()
+    path,waypoints = planner.postProcess(path,waypoints)
+    plt.figure()
+    plt.imshow(_map)
+    plt.scatter(x=160*path[:,1], y=160*path[:,0], color='red', s=2)
+    plt.scatter(x=160*waypoints[:,1], y=160*waypoints[:,0], color='green', s=10)
+    plt.show()
     # comment this if you dont need to visualise the sampled points
     # plt.scatter(x=160*planner.points[:,1], y=160*planner.points[:,0], color='red', s=2)
     # planning the path

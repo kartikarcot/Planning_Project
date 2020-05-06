@@ -194,6 +194,7 @@ class FMT_Star(object):
 
     def get_path(self,waypoints):
         path = np.array([[0,0,0]])
+        c = 0
         for i in range(waypoints.shape[0] - 1):
             q0 = waypoints[i,:]
             q1 = waypoints[i+1,:]
@@ -211,13 +212,16 @@ class FMT_Star(object):
                     min_cost = cost
             if segment_path == []:
                 segment_path = copy.copy(pts)
+                c += cost
+            else:
+                c += min_cost
             # if segment_path == []:
             #     if i > 0 and i < range(waypoints.shape[0] - 1):
             #         segment_path = self.get_path(waypoints[[i-1,i+1],:])
             # else:
             #     segment_path = copy.copy(pts)
             path = np.concatenate((path,segment_path))
-        return path
+        return path, c
 
     def get_path_linear(self,waypoints):
         path = np.array([[0,0,0]])
@@ -319,9 +323,9 @@ class FMT_Star(object):
             new_ang = np.arctan2(-(waypoints[i+1,0]-waypoints[i-1,0]),-(waypoints[i+1,1]-waypoints[i-1,1]))
             new_waypoints[i,2] = new_ang
         new_waypoints[-1,2] = new_waypoints[-2,2]
-        new_path = self.get_path(new_waypoints)
+        new_path, cost = self.get_path(new_waypoints)
         # print(new_waypoints)
-        return new_path, new_waypoints
+        return new_path, new_waypoints, cost
 
     def solve_linear(self):
         i=0
@@ -353,8 +357,8 @@ class FMT_Star(object):
         while(True):
             self.extend()
             i+=1
-            if i%10==0:
-                print(i, np.sum(self.closed))
+            # if i%10==0:
+                # print(i, np.sum(self.closed))
             # break if final node visited or open list is empty
             if not self.unvisit[-1] or not self.open.any():
                 break
@@ -368,10 +372,10 @@ class FMT_Star(object):
                 id = self.parent[id]
             waypoints.reverse()
             waypoints = np.array(waypoints)
-            path = self.get_path(waypoints)
+            path, cost = self.get_path(waypoints)
             # post_path, post_waypoints = self.postProcess(path,waypoints)
             # return post_path, post_waypoints
-            return path, waypoints
+            return path, waypoints, cost
         else:
             print("Plan Not found")
             return np.array([]),np.array([])

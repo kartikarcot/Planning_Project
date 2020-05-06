@@ -4,6 +4,7 @@ import os
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import matplotlib.gridspec as gridspec
+import time
 # To suppress warnings
 import warnings
 warnings.filterwarnings("ignore")
@@ -168,20 +169,34 @@ if __name__ == "__main__":
     checker = CollisionChecker(_map, radius=3)
     sampler = Sampler(mini_map, row_size, col_size)
     sampler.initialize(MODEL_DIR)
+    # for i in range(10):
+    tic = time.perf_counter()
     starts = np.array([[10,10,0],[10,10,0],[100,10,0],[10,10,0],[10,10,0],[10,10,0]])
     goals = np.array([[10,10,0],[140,20,0],[80,125,0],[140,140,0],[95,110,0],[100,60,0]])
     planner = FMT_Star(3, 500, sampler.sample, checker.is_in_collision)
+    # planner = FMT_Star(3, 500, None, checker.is_in_collision)
     planner.initialize(starts[MAP_NUM-1,:]/160,goals[MAP_NUM-1,:]/160, np.array([0,0,0]), np.array([1,1,2*np.pi]))
+    # path,waypoints,cost = planner.solve()
+    # path,waypoints,cost = planner.postProcess(path,waypoints)
+    # plt.figure()
+    # plt.imshow(_map)
+    # plt.scatter(x=160*path[:,1], y=160*path[:,0], color='red', s=2)
+    # plt.scatter(x=160*waypoints[:,1], y=160*waypoints[:,0], color='green', s=10)
+    # plt.show()
     plt.scatter(x=160*planner.points[:,1], y=160*planner.points[:,0], color='red', s=2)
     plt.imshow(_map)
     plt.show()
-    path,waypoints = planner.solve()
+    path,waypoints,cost = planner.solve()
     plt.figure()
     plt.imshow(_map)
     plt.scatter(x=160*path[:,1], y=160*path[:,0], color='red', s=2)
     plt.scatter(x=160*waypoints[:,1], y=160*waypoints[:,0], color='green', s=10)
     plt.show()
-    path,waypoints = planner.postProcess(path,waypoints)
+    path,waypoints,cost = planner.postProcess(path,waypoints)
+    toc = time.perf_counter()
+    print("Iteration took ", toc-tic)
+    print("num waypoints", waypoints.shape[0])
+    print("cost", cost)
     plt.figure()
     plt.imshow(_map)
     plt.scatter(x=160*path[:,1], y=160*path[:,0], color='red', s=2)
@@ -191,10 +206,10 @@ if __name__ == "__main__":
     # plt.scatter(x=160*planner.points[:,1], y=160*planner.points[:,0], color='red', s=2)
     # planning the path
     # path,waypoints = planner.solve()
-    if path.shape[0]!=0:
-        plt.figure()
-        plt.imshow(_map)
-        plt.scatter(x=160*path[:,1], y=160*path[:,0], color='red', s=2)
-        plt.scatter(x=160*waypoints[:,1], y=160*waypoints[:,0], color='green', s=10)
-        plt.show()
-        plt.close('all');
+    # if path.shape[0]!=0:
+    #     plt.figure()
+    #     plt.imshow(_map)
+    #     plt.scatter(x=160*path[:,1], y=160*path[:,0], color='red', s=2)
+    #     plt.scatter(x=160*waypoints[:,1], y=160*waypoints[:,0], color='green', s=10)
+    #     plt.show()
+    #     plt.close('all');

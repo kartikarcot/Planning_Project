@@ -1,8 +1,0 @@
-<launch>
-   <node name="sampler" type="sampler.py" pkg="sampling_node" output="screen">
-     <rosparam param="settings">
-       "model_dir": "./src/CVAE/Models"
-       "map_num": 1
-     </rosparam>
-   </node>
-</launch>
